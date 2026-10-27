@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, rename, rm } from 'node:fs/promises';
+import { mkdtemp, realpath, mkdir, writeFile, readFile, rename, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Library, naturalOrder, inside } from '../lib/library.mjs';
@@ -10,7 +10,7 @@ test('natural ordering is deterministic and rejects path escapes',()=>{
   const root=path.resolve('fixture');assert.equal(inside(root,path.join(root,'a.pdf')),true);assert.equal(inside(root,path.resolve('other')),false);
 });
 test('scan preserves originals, identities, progress and unavailable-root records',async()=>{
-  const temp=await mkdtemp(path.join(os.tmpdir(),'folio-test-'));const root=path.join(temp,'Books');await mkdir(root);const lib=new Library(path.join(temp,'test.sqlite'));
+  const temp=await realpath(await mkdtemp(path.join(os.tmpdir(),'folio-test-')));const root=path.join(temp,'Books');await mkdir(root);const lib=new Library(path.join(temp,'test.sqlite'));
   try{
     await mkdir(path.join(root,'Chapters 你好'));
     for(const name of ['page10.png','page2.png','page1.png'])await writeFile(path.join(root,'Chapters 你好',name),'fixture');

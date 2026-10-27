@@ -1,13 +1,13 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,readFile,readdir,rm} from 'node:fs/promises';
+import {mkdtemp,realpath,mkdir,readFile,readdir,rm} from 'node:fs/promises';
 import {Readable} from 'node:stream';
 import os from 'node:os';
 import path from 'node:path';
 import {Library} from '../lib/library.mjs';
 import {Imports} from '../lib/imports.mjs';
 test('imports stage files, reject unsafe names, preserve bytes and group images naturally',async()=>{
- const temp=await mkdtemp(path.join(os.tmpdir(),'folio-import-test-')),root=path.join(temp,'books');await mkdir(root);const library=new Library(path.join(temp,'db.sqlite')),imports=new Imports(library,temp);
+ const temp=await realpath(await mkdtemp(path.join(os.tmpdir(),'folio-import-test-'))),root=path.join(temp,'books');await mkdir(root);const library=new Library(path.join(temp,'db.sqlite')),imports=new Imports(library,temp);
  try{
  await library.configure(root);const {id}=await imports.begin();
  await assert.rejects(()=>imports.upload(id,'../escape.pdf',Readable.from(['bad'])));
@@ -20,7 +20,7 @@ test('imports stage files, reject unsafe names, preserve bytes and group images 
  }finally{library.close();await rm(temp,{recursive:true,force:true});}
 });
 test('collections support overlapping memberships, validation, filtering and profile reload',async()=>{
- const temp=await mkdtemp(path.join(os.tmpdir(),'folio-collections-test-')),root=path.join(temp,'books');await mkdir(root);let library=new Library(path.join(temp,'db.sqlite'));const imports=new Imports(library,temp);
+ const temp=await realpath(await mkdtemp(path.join(os.tmpdir(),'folio-collections-test-'))),root=path.join(temp,'books');await mkdir(root);let library=new Library(path.join(temp,'db.sqlite'));const imports=new Imports(library,temp);
  try{
  await library.configure(root);const batch=await imports.begin();await imports.upload(batch.id,'Book.pdf',Readable.from(['fixture']));await imports.finish(batch.id);const book=library.list().books[0];
  const first=library.saveCollection({name:'Favorites',books:[book.id]}),second=library.saveCollection({name:'To study',books:[book.id]});
@@ -30,7 +30,7 @@ test('collections support overlapping memberships, validation, filtering and pro
 });
 
 test('localhost import and collection endpoints complete a real authenticated workflow',async()=>{
- const {spawn}=await import('node:child_process');const temp=await mkdtemp(path.join(os.tmpdir(),'folio-http-test-')),root=path.join(temp,'books');await mkdir(root);
+ const {spawn}=await import('node:child_process');const temp=await realpath(await mkdtemp(path.join(os.tmpdir(),'folio-http-test-'))),root=path.join(temp,'books');await mkdir(root);
  const child=spawn(process.execPath,['server.mjs'],{env:{...process.env,EBOOK_PROFILE:path.join(temp,'profile'),EBOOK_LIBRARY:root,PORT:'4400'},stdio:['pipe','pipe','pipe']});
  try{
  const origin=await new Promise((resolve,reject)=>{let output='';const timer=setTimeout(()=>reject(Error('Server startup timed out')),15000);child.stdout.on('data',data=>{output+=data;const match=output.match(/http:\/\/127\.0\.0\.1:\d+/);if(match){clearTimeout(timer);resolve(match[0]);}});child.once('error',reject);});
