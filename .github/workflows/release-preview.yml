@@ -1,0 +1,42 @@
+name: Build unsigned Windows preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-preview:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/check.mjs
+      - run: node --test
+      - run: node scripts/benchmark-library.mjs --books=1000
+      - run: node scripts/build-portable.mjs
+      - run: node scripts/build-desktop.mjs
+      - run: node scripts/verify-desktop-session.mjs
+      - run: node scripts/build-installer.mjs
+      - name: Test installation and removal with generated books
+        shell: pwsh
+        run: |
+          node scripts/create-release-fixture.mjs .local/release-fixture
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          ./scripts/test-installer.ps1 -Installer ".local/dist/Folio-Setup-$version-windows-x64-unsigned.exe" -Fixture .local/release-fixture/fixture.json
+      - name: Archive preview folders
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          Compress-Archive -LiteralPath ".local/dist/Folio-$version-win32-x64" -DestinationPath ".local/dist/Folio-$version-windows-x64.zip"
+          Compress-Archive -LiteralPath ".local/dist/Folio-$version-desktop-win32-x64" -DestinationPath ".local/dist/Folio-$version-desktop-windows-x64.zip"
+      - run: node scripts/release-manifest.mjs --allow-unsigned
+      - uses: actions/upload-artifact@v4
+        with:
+          name: folio-unsigned-windows-preview
+          path: |
+            .local/dist/*.exe
+            .local/dist/*.zip
+            .local/dist/*SHA256SUMS.txt
+            .local/dist/*release-manifest.json
+          if-no-files-found: error

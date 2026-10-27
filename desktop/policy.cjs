@@ -1,0 +1,8 @@
+const allowedStateKeys=['reading','keepAwake','protectCapture','showProgress','progress'];
+function localOrigin(value){try{const url=new URL(value);return url.protocol==='http:'&&url.hostname==='127.0.0.1'&&/^\d+$/.test(url.port)&&Number(url.port)>0&&Number(url.port)<=65535&&url.pathname==='/'&&!url.search&&!url.hash&&!url.username&&!url.password?url.origin:null;}catch{return null;}}
+function appPage(address,origin){try{const url=new URL(address);return localOrigin(url.origin)===origin&&url.pathname==='/'&&!url.search&&!url.username&&!url.password;}catch{return false;}}
+function externalLink(address){try{const url=new URL(address);return url.protocol==='https:'&&!url.username&&!url.password?url.href:null;}catch{return null;}}
+function originalPage(address,origin){try{const url=new URL(address);return url.origin===origin&&/^\/content\/[a-f0-9-]{36}(?:\/\d+)?$/.test(url.pathname)&&!url.search&&!url.hash&&!url.username&&!url.password;}catch{return false;}}
+function readerState(value){if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(key=>!allowedStateKeys.includes(key))||allowedStateKeys.slice(0,4).some(key=>typeof value[key]!=='boolean')||typeof value.progress!=='number'||!Number.isFinite(value.progress)||value.progress<0||value.progress>1)throw new Error('Invalid desktop reader state.');return {...value};}
+function trustedSender(event,window,origin){return !!window&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame&&appPage(event.senderFrame?.url,origin);}
+module.exports={localOrigin,appPage,externalLink,originalPage,readerState,trustedSender};

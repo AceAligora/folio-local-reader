@@ -1,0 +1,19 @@
+import {PdfReader} from './pdf-reader.js';
+import {EpubReader} from './epub-reader.js';
+import {ArchiveReader} from './archive-reader.js';
+const el=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;};
+export class CompareReader{
+  constructor(host,onResize){this.host=host;this.onResize=onResize;this.pdf=new PdfReader();this.epub=new EpubReader();this.archive=new ArchiveReader();}
+  close(){this.version=(this.version||0)+1;this.host.hidden=true;void this.pdf.close().catch(()=>{});this.epub.close();this.archive.close();this.book=null;this.onResize?.();}
+  async show(primary){
+    this.close();this.host.replaceChildren();this.host.hidden=false;const heading=el('h3','Compare books'),select=el('select'),close=el('button','Close comparison'),back=el('button','←'),next=el('button','→'),position=el('span'),sync=el('input'),label=el('label','Synchronize page numbers'),controls=el('div'),body=el('div'),note=el('p','Comparison position is session-only. Reading time and saved progress track the main book.');sync.type='checkbox';label.prepend(sync);this.syncEnabled=sync;this.body=body;this.position=position;this.back=back;this.next=next;body.className='comparison-body';controls.className='comparison-controls';select.setAttribute('aria-label','Book to compare');back.setAttribute('aria-label','Previous comparison page');next.setAttribute('aria-label','Next comparison page');controls.append(select,back,position,next,label,close);this.host.append(heading,controls,body,note);close.onclick=()=>this.close();back.onclick=()=>{this.index=Math.max(0,this.index-1);void this.draw();};next.onclick=()=>{this.index=Math.min(this.count-1,this.index+1);void this.draw();};let books=[];
+    for(let page=0;;page++){const response=await fetch('/api/books?page='+page),data=await response.json();books.push(...data.books);if(books.length>=data.total)break;}
+    const candidates=books.filter(book=>book.available&&book.id!==primary.id);select.replaceChildren(...candidates.map(book=>new Option(book.state.metadata?.title||book.title,book.id)));select.onchange=async()=>{const book=candidates.find(b=>b.id===select.value);if(book)await this.open(book);};if(candidates.length)await this.open(candidates[0]);else body.textContent='Add another book to compare.';this.onResize?.();
+  }
+  async open(book){
+    const version=this.version=(this.version||0)+1;await this.pdf.close();this.epub.close();this.archive.close();this.book=book;this.body.textContent='Opening comparison…';
+    try{this.count=book.format==='pdf'?await this.pdf.open(book.id,(update)=>{const password=window.prompt('Comparison PDF password:');if(password===null)void this.pdf.close();else update(password);}):book.format==='epub'?await this.epub.open(book.id):book.format==='cbz'?await this.archive.open(book.id):book.pages.length;if(version!==this.version)return;this.index=Math.min(this.count-1,book.state.page||0);this.epub.onNavigate=index=>{this.index=index;void this.draw();};await this.draw();}catch(error){if(version===this.version)this.body.textContent=error.message;}
+  }
+  async draw(){if(!this.book||!this.count)return;this.position.textContent=(this.index+1)+' / '+this.count;this.back.disabled=this.index===0;this.next.disabled=this.index>=this.count-1;try{if(this.book.format==='pdf')await this.pdf.render(this.body,this.index,0,'fit');else if(this.book.format==='epub')this.epub.render(this.body,this.index,'fit');else{const image=el('img');image.alt='Comparison page '+(this.index+1);image.src=this.book.format==='cbz'?this.archive.url(this.index):'/content/'+this.book.id+'/'+this.index;this.body.replaceChildren(image);}}catch(error){this.body.textContent=error.message;}}
+  sync(index){if(this.host.hidden||!this.syncEnabled?.checked||!this.count)return;const next=Math.min(this.count-1,index);if(next!==this.index){this.index=next;void this.draw();}}
+}

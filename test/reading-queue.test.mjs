@@ -1,0 +1,13 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,writeFile,copyFile,rm} from 'node:fs/promises';import path from 'node:path';import os from 'node:os';
+import {Library} from '../lib/library.mjs';import {changeQueue,visibleQueue} from '../lib/reading-queue.mjs';import {restoreBackup,validateState} from '../lib/backup.mjs';
+test('reading queue preserves order through restart and backup restore without changing reading positions',async()=>{
+  const temp=await mkdtemp(path.join(os.tmpdir(),'folio-queue-')),root=path.join(temp,'books');await mkdir(root);let lib=new Library(path.join(temp,'library.sqlite'));
+  try{for(const n of ['A.pdf','B.epub','C.cbz'])await writeFile(path.join(root,n),'original');await lib.configure(root);await lib.scan();const [a,b,c]=lib.list().books;lib.save(a.id,{page:3,total:20,seconds:5});for(const book of [a,b,c])changeQueue(lib,{id:book.id,action:'add'});changeQueue(lib,{id:a.id,action:'add'});assert.equal(visibleQueue(lib).length,3);changeQueue(lib,{id:c.id,action:'up'});assert.deepEqual(visibleQueue(lib).map(b=>b.id),[a.id,c.id,b.id]);const backup=lib.backup();lib.close();lib=new Library(path.join(temp,'library.sqlite'));assert.deepEqual(visibleQueue(lib).map(b=>b.id),[a.id,c.id,b.id]);changeQueue(lib,{id:a.id,action:'remove'});restoreBackup(lib,backup);assert.equal(visibleQueue(lib)[0].id,a.id);assert.equal(lib.book(a.id).state.page,3);assert.equal(lib.insights()[0].seconds,5);lib.details(a.id,{status:'finished'});assert.equal(visibleQueue(lib).length,3);lib.preferences({excludedFolders:['A.pdf']});assert.equal(visibleQueue(lib).length,2);lib.preferences({incognito:true});assert.throws(()=>changeQueue(lib,{id:b.id,action:'remove'}),/Incognito/);assert.throws(()=>validateState({queueRank:-1}));
+  }finally{lib.close();await rm(temp,{recursive:true,force:true});}
+});
+
+test('manual relinking transfers queue membership to the replacement without retaining a duplicate queue entry',async()=>{
+  const temp=await mkdtemp(path.join(os.tmpdir(),'folio-queue-relink-')),root=path.join(temp,'books');await mkdir(root);const lib=new Library(path.join(temp,'library.sqlite'));
+  try{await lib.configure(root);await writeFile(path.join(root,'Old.pdf'),'book');await lib.scan();const old=lib.list().books[0];changeQueue(lib,{id:old.id,action:'add'});await copyFile(path.join(root,'Old.pdf'),path.join(root,'New.pdf'));await rm(path.join(root,'Old.pdf'));await lib.scan();const replacement=lib.list().books.find(b=>b.available);lib.relink(old.id,replacement.id);assert.deepEqual(visibleQueue(lib).map(b=>b.id),[replacement.id]);assert.equal(lib.book(old.id).state.queueRank,undefined);}finally{lib.close();await rm(temp,{recursive:true,force:true});}
+});

@@ -1,0 +1,46 @@
+Local Ebook Reader (working interface name: Folio)
+Copyright 2026 Local Ebook Reader contributors
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+Bundled PDF rendering: Mozilla PDF.js (pdfjs-dist 6.4.299), Apache-2.0.
+Upstream: https://github.com/mozilla/pdf.js
+The original package, including LICENSE and font/resource notices, is retained
+under public/vendor/pdfjs. These resources are served locally, with no CDN.
+
+Node.js and the user's browser are separate runtime dependencies with their
+own licenses. No user ebook content is bundled.
+
+Bundled EPUB ZIP extraction: fflate 0.8.3, MIT license.
+Upstream: https://github.com/101arrowz/fflate
+Original package and LICENSE retained in public/vendor/fflate.
+
+Bootstrap Icons 1.13.1 (MIT), selected original SVG assets in public/icons.
+License: public/icons/LICENSE. Upstream: https://github.com/twbs/icons
+
+Roboto font from Google Fonts, SIL Open Font License 1.1.
+Font and license retained in public/fonts. Upstream: https://github.com/google/fonts
+Geist variable font from Google Fonts / The Geist Project Authors, SIL Open Font License 1.1.
+Regular font, license, upstream blob and SHA-256 retained in public/fonts/Geist*.
+Upstream: https://github.com/vercel/geist-font
+
+Project-local contributor tool: Leonxlnx/taste-skill, MIT.
+Pinned source, license and contributor instructions retained in .agents/skills/design-taste-frontend.
+This design guidance is separate from the Folio app runtime.
+public/pdf-text.css contains the PDF.js 6.4.299 text-layer CSS rules, under Apache-2.0, extracted from the bundled pdf_viewer.css. The complete license is retained at public/vendor/pdfjs/LICENSE.
+
+Optional Windows Desktop distribution: Electron 45.0.0 (MIT) and its Chromium dependencies.
+Upstream: https://github.com/electron/electron
+The desktop build retains upstream LICENSE and LICENSES.chromium.html beside Folio.exe.
+The separate bundled Node runtime retains its complete official license in resources/folio/runtime/LICENSE.
+Desktop source code is original Folio code under Apache-2.0; the browser distribution does not bundle Electron.
+
+Optional Windows installer: NSIS 3.13, official portable compiler.
+Upstream: https://nsis.sourceforge.io/
+NSIS is primarily under the zlib/libpng license; upstream COPYING also documents bundled components.
+The installer uses zlib compression and installs the complete upstream COPYING as NSIS-COPYING.txt.
+The compiler is a checksum-pinned build tool, not a globally installed dependency.
+
+Bundled feed/XML parser: @xmldom/xmldom 0.9.12 (MIT).
+Upstream: https://github.com/xmldom/xmldom
+Complete source/license and pinned npm integrity metadata retained in lib/vendor/xmldom.

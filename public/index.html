@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f3f1">
+  <title>Folio · Local ebook reader</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/pdf-text.css">
+  <link id="app-icon" rel="icon" href="/icons/journal-bookmark.svg" type="image/svg+xml">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="mobile-appbar"><span class="mobile-brand">folio</span><button id="open-menu" aria-expanded="false" aria-controls="app-sidebar">Menu</button></div>
+  <button id="nav-scrim" aria-label="Close navigation" hidden></button>
+  <aside class="sidebar" id="app-sidebar" aria-label="Folio navigation">
+    <div class="brand-row"><a class="brand" href="/" aria-label="Folio home"><img src="/icons/journal-bookmark.svg" alt=""><span>folio</span></a><button id="close-menu" aria-label="Close navigation">×</button></div>
+    <p class="workspace-label">Your reading space</p>
+    <nav id="main-tabs" aria-label="Main navigation">
+      <button class="nav active" data-tab="library">Library</button><button class="nav" data-tab="updates">Updates</button><button class="nav" data-tab="history">History</button>
+      <span class="nav-divider" aria-hidden="true"></span>
+      <button class="nav sidebar-action" id="add-items">Add items</button><button class="nav sidebar-action" id="add-collection">Add collection</button><button class="nav nav-settings" data-tab="settings">Settings</button>
+    </nav>
+    <div class="sidebar-bottom"><span class="offline">On this device</span><p>Your library. Your place to read.</p></div>
+  </aside>
+  <main id="main-content" tabindex="-1">
+    <header class="page-header"><div><h1 id="page-heading">Library</h1><p class="muted" id="summary">Your books, right where you left them.</p></div><button id="scan" title="Find new and changed files in your ebook folder">Scan library</button></header>
+    <div class="scan-status" role="status" id="status">Ready</div><button id="cancel" hidden>Cancel scan</button>
+    <section id="library-panel" aria-label="Your library">
+      <section class="setup" id="setup"><div><h2>A home for your books</h2><p>Choose your existing ebook folder. Original files stay untouched.</p></div><form id="folder-form"><label for="folder">Library folder</label><div class="row"><input id="folder" placeholder="Enter an absolute folder path" required><button class="primary">Save folder</button></div></form></section>
+      <div class="library-topbar"><label class="global-search"><img src="/icons/search.svg" alt=""><input id="search" type="search" aria-label="Search books" placeholder="Find a book in your library…"></label><button id="reading-queue">Reading queue</button></div>
+      <nav class="shelves" aria-label="Library shelves"><button id="all">All books</button><button id="continue">Continue reading</button><button id="favorites">Favorites</button><button id="finished">Completed</button><button id="health">Library health</button></nav>
+      <div class="library-heading">
+        <div class="library-title"><h2>All books</h2><span id="library-count" aria-label="Book count">0</span></div>
+        <div class="library-actions">
+          <select id="display-mode" aria-label="Library display mode"><option value="grid">Cover grid</option><option value="list">List</option><option value="descriptive">Descriptive list</option></select>
+          <select id="sort" aria-label="Sort books"><option value="title">Title</option><option value="chapters">Total chapters / pages</option><option value="lastRead">Last read</option><option value="unread">Unread first</option><option value="latest">Latest local change</option><option value="fetched">Last checked</option><option value="added">Date added</option></select>
+          <button id="sort-direction" aria-label="Reverse sort order"><img src="/icons/arrow-down.svg" alt="Descending order"></button><button id="toggle-filters" aria-expanded="false" aria-controls="filter-panel"><img src="/icons/filter.svg" alt="">Filters</button>
+        </div>
+      </div>
+      <div class="collection-bar"><label><span class="collection-label">Collection</span><select id="collection-filter" aria-label="Collection"><option value="">All books</option></select></label><button id="bulk-edit">Select books</button><button id="edit-collection" hidden>Edit collection</button><details class="display-options"><summary>Display options</summary><div id="display-controls"></div></details></div>
+      <section class="tools" id="filter-panel" hidden aria-label="Book filters">
+        <select id="format" aria-label="Filter format"><option value="">All formats</option><option value="pdf">PDF</option><option value="epub">EPUB</option><option value="images">Image books</option><option value="cbz">CBZ comics</option></select>
+        <select id="filter" aria-label="Reading filter"><option value="">All statuses</option><option value="unread">Unread</option><option value="finished">Completed</option><option value="downloaded">Downloaded / local</option></select>
+        <select id="category-filter" aria-label="Category"><option value="">All categories</option></select><select id="tag-filter" aria-label="Tag"><option value="">All tags</option></select><select id="series-filter" aria-label="Series"><option value="">All series</option></select><button id="view" hidden>Display</button>
+        <p class="library-hint">Page counts appear after opening a book. Latest change and last checked refer to local scans.</p>
+      </section>
+      <nav id="alphabet" class="alphabet" aria-label="Filter by initial letter"></nav><section id="books" class="books" aria-label="Books"></section>
+      <div class="pagination"><button id="prev">← Previous</button><span id="page-label"></span><button id="next">Next →</button></div>
+      <section id="issues" hidden><h2>Library health</h2><p>Issues from the latest scan; source files are never deleted.</p><ul id="issue-list"></ul></section>
+    </section>
+    <section id="updates-panel" class="workspace-panel" hidden></section><section id="browse-panel" class="workspace-panel" hidden></section><section id="history-panel" class="workspace-panel" hidden></section><section id="settings-panel" class="workspace-panel" hidden></section><p id="message" role="alert"></p>
+  </main>
+  <div id="privacy-screen" hidden><h1>Folio</h1><p>Contents hidden while this window is inactive.</p></div>
+  <dialog id="reader" aria-labelledby="reader-title">
+    <header class="reader-toolbar">
+      <button id="close-reader">← Library</button><strong id="reader-title"></strong><button id="toggle-navigation" aria-expanded="false" aria-controls="reader-navigation">Contents &amp; search</button>
+      <details class="reader-options" id="reader-options"><summary>Reading options</summary><div class="reader-options-panel">
+        <h2>Reading options</h2>
+        <label>Reading mode<select id="reader-mode" aria-label="Reading mode"><option value="paged-ltr">Paged →</option><option value="paged-rtl">Paged ←</option><option value="paged-vertical">Paged ↓</option><option value="continuous-vertical">Continuous ↓</option><option value="continuous-ltr">Continuous →</option><option value="continuous-rtl">Continuous ←</option><option value="webtoon">Webtoon</option></select></label>
+        <label>Page layout<select id="page-layout" aria-label="Page layout"><option value="single">Single page</option><option value="double">Double page</option><option value="auto">Automatic</option></select></label>
+        <div class="reader-option-actions"><button id="rotate">Rotate</button><button id="hold-scroll" hidden>Hold to scroll</button><button id="autoscroll">Autoscroll</button><button id="compare-book">Compare</button><button id="crop-borders">Crop borders</button><button id="reset-book-preferences" title="Reset this book layout, crop and reading mode">Use app defaults</button></div>
+      </div></details>
+      <details class="reader-options" id="book-tools"><summary>Book &amp; notes</summary><div class="reader-options-panel reader-details">
+        <h2>Book &amp; notes</h2><label>Category<select id="book-category" aria-label="Book category"></select></label><label>Reading status<select id="reading-status"><option value="unread">Unread</option><option value="reading">Reading</option><option value="finished">Finished</option></select></label>
+        <label>Highlight color<select id="highlight-color" aria-label="New highlight color"><option value="yellow">Yellow</option><option value="green">Green</option><option value="blue">Blue</option><option value="pink">Pink</option><option value="purple">Purple</option></select></label>
+        <div class="reader-option-actions"><button id="highlight-selection">Highlight selection</button><button id="book-details">Book details</button><button id="share-book">Copy reading link</button><button id="open-original">Open original</button><button id="queue-current">Queue book</button><button id="favorite">Favorite</button></div>
+        <label>Saved bookmarks<select id="bookmark-list" aria-label="Saved bookmarks"><option value="">Bookmarks</option></select></label>
+      </div></details>
+      <button id="focus-reading" aria-pressed="false">Focus</button><button id="fullscreen">Fullscreen</button>
+    </header>
+    <div id="serial-reader-nav" class="serial-reader-nav" aria-label="Serialized chapter navigation" hidden></div>
+    <div class="reader-workspace">
+      <section id="reader-navigation" aria-label="Book navigation" hidden>
+        <div class="navigation-heading"><h2>Book navigation</h2><button id="close-navigation" aria-label="Close book navigation">×</button></div><div id="contents"></div>
+        <details id="notes-section"><summary>Reading notes</summary><div id="reader-notes"></div></details><details><summary>Offline reading tools</summary><div id="offline-tools"></div></details>
+        <form id="pdf-search-form" hidden><label for="pdf-query">Find text in this PDF</label><div class="row"><input id="pdf-query" type="search" maxlength="150" required placeholder="Search this book…"><button class="primary">Find</button></div><button type="button" id="cancel-search" hidden>Stop search</button></form><p id="search-status" role="status"></p><div id="search-results"></div>
+      </section>
+      <div id="reader-body" tabindex="0" aria-label="Reading page"></div><section id="comparison-panel" aria-label="Comparison book" hidden></section>
+    </div>
+    <footer class="reader-pagination">
+      <div class="page-turner"><button id="back-page" aria-label="Previous page">←</button><label>Page <input id="page-input" type="number" min="1" value="1"></label><span id="position" role="status"></span><button id="next-page" aria-label="Next page">→</button></div>
+      <div class="reader-quick-tools"><label>Zoom <select id="zoom"><option value="fit">Fit page</option><option value="0.75">75%</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label><button id="bookmark">Bookmark page</button></div>
+    </footer>
+    <div id="custom-toolbar" class="reader-details" hidden></div><button id="exit-focus-reading">Exit focus reading · Esc</button><p id="reader-note" role="status"></p>
+  </dialog>
+</body>
+</html>
