@@ -82,8 +82,19 @@ For 0.10.0, local syntax/native tests and the desktop session self-check passed.
 | Unsafe replacement | Running executable and linked managed application paths refused |
 | Build and artifact integrity | Per-file payload manifests, artifact SHA-256 checksums, pinned compiler/runtime, retained notices |
 | Chapter feeds and sessions | Generated feed/cookie/proxy/API checks, native blank-window cookie self-check, isolated browser reading and live public feed compatibility; see [feature notes](CHAPTER-FEEDS-AND-SESSIONS.md) |
-| GitHub Windows release workflow | Tag-triggered build/test/publication; per-release hosted evidence is recorded below after completion |
+| GitHub Windows release workflow | [0.10.0 Windows build and publication passed](https://github.com/AceAligora/folio-local-reader/actions/runs/40454986689), including install/upgrade/native reading/uninstall and archive verification |
 | Signing | Deferred by user choice; unsigned preview |
 | Broader manual coverage | **Open:** Windows variants/ARM, DPI/multiple monitors, keyboard/screen-reader walkthrough, visible native dialogs, external capture tools, large real PDFs/EPUBs/comics, low disk/permission failure, interrupted upgrade/power loss and crash recovery |
 
 The completion ledger keeps broad performance/accessibility/release testing unchecked until that remaining coverage is completed. Local fixture success does not establish universal platform compatibility.
+
+## Published 0.10.0 verification
+
+[Folio v0.10.0](https://github.com/AceAligora/folio-local-reader/releases/tag/v0.10.0) is a published stable Latest Release with the Windows x64 installer, desktop/browser portable ZIPs, release manifest and checksums. The tagged source is commit `33f2f62060d71943e73f2f96ca2fbb1f1837a3a1`.
+
+The real updater was exercised against that public release in an isolated profile: an older-version client downloaded and verified 0.10.0, while a 0.10.0 client reported current. No installer was executed by this live-feed check and no personal profile was used. All three artifact sizes/digests match the manifest, GitHub asset digests and checksum list. The downloaded installer was independently hashed again.
+
+- Installer size: **203,724,908 bytes**.
+- Installer SHA-256: `dd8abc4fc2f6bcc7722e06a926a62e6979893dd9f7b2a3cd75cad4f7acbb2f0e`.
+- Hosted installer lifecycle tests passed on GitHub Windows; local native OCR/speech and all 98 local tests passed before publication. The later cache-recovery review also passed the targeted updater tests and the full tagged hosted checks.
+- Signing remains deferred. The local Application Control limitation described above has not been bypassed; a future live upgrade between two public updater-enabled versions is not claimed by this first updater release.
