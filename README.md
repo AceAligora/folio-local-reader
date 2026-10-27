@@ -5,6 +5,10 @@ An open-source reader for **PDF, EPUB, CBZ and naturally ordered image collectio
 [![Checks](https://github.com/AceAligora/folio-local-reader/actions/workflows/check.yml/badge.svg)](https://github.com/AceAligora/folio-local-reader/actions/workflows/check.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
+## Download for Windows
+
+Get the Windows x64 installer from [GitHub Releases](https://github.com/AceAligora/folio-local-reader/releases/latest). The installer is unsigned and installs per user without administrator access. Installed copies check for new stable releases automatically; use the native **Updates** menu to change that setting. Your books and reading data stay local. Portable ZIPs and source builds update manually.
+
 ## Run from source
 
 Install **Node.js 24.14 or newer**, then:
@@ -23,10 +27,12 @@ Folio binds to `127.0.0.1`; do not expose its port publicly or through a tunnel.
 
 - Embedded PDF, EPUB, image-book and CBZ readers with saved position, mouse-wheel navigation and flexible layouts.
 - Cover grid, list and descriptive views; collections, favorites, reading queue, history and reading insights.
+- A local Discover bookshelf with continue-reading covers, search and category shelves.
 - Local notes, colored highlights, bookmarks, PDF search and a searchable reading notebook.
 - Light, dark and sepia themes; separate settings pages and responsive navigation.
 - Folder watching, duplicate review, local text indexing and recovery backups.
 - Optional Windows OCR, installed offline voices and an Electron desktop build.
+- Installed Windows automatic updates from published GitHub Releases, with verified downloads and a save-before-restart installation step.
 - Opt-in source adapters and RSS/Atom chapter feeds, with explicit downloads stored locally.
 
 ![Folio embedded reader showing a generated test document](docs/images/reader-preview.jpg)
@@ -42,7 +48,7 @@ node --test
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [architecture](docs/IMPLEMENTATION.md), [UI design](docs/UI-DESIGN.md), [security](SECURITY.md) and [third-party notices](NOTICE). Original Folio code is licensed under **Apache-2.0**; bundled components retain their own licenses. Contributions are welcome through issues and pull requests. Never include personal books, profiles, credentials or private screenshots.
 
-This repository publishes the current **0.9.0 source preview**. Desktop/installer build scripts are included; prebuilt binaries are not part of this initial publication. Existing local installers predate the latest source changes. Follow [distribution instructions](docs/DISTRIBUTION.md) to build an unsigned Windows preview.
+The current release is **0.10.0**. Windows installers, portable ZIPs and checksums are distributed in [GitHub Releases](https://github.com/AceAligora/folio-local-reader/releases), while the repository contains source. Tagged versions run the Windows release workflow before publication. See [distribution and updater details](docs/DISTRIBUTION.md).
 
 ## Detailed feature notes · 0.9.0
 
@@ -130,9 +136,9 @@ Library, Updates, History and Settings organize the interface. Browse is under S
 
 ### Adding books and collections
 
-Use **Add items** to select PDF/EPUB/image files or a folder. Files are copied over localhost into a unique `Folio Imports/Import …` subfolder of your configured library. Folder structure is preserved; images sharing a folder form one book in natural filename order. Original files are never overwritten. Imports are staged in the local profile until the entire batch succeeds (1 GB per file, up to 10,000 files). If a file fails, the staged batch is discarded. After importing, Folio rescans the library and clears view filters so the new items are visible.
+Use **Add books** in the sidebar to open the Add items dialog and select PDF/EPUB/CBZ/image files or a folder. Files are copied over localhost into a unique `Folio Imports/Import …` subfolder of your configured library. Folder structure is preserved; images sharing a folder form one book in natural filename order. Original files are never overwritten. Imports are staged in the local profile until the entire batch succeeds (1 GB per file, up to 10,000 files). If a file fails, the staged batch is discarded. After importing, Folio rescans the library and clears view filters so the new items are visible.
 
-Use **Add collection** to name a virtual collection and select books. The Collection selector above the library opens it; **Edit collection** renames it or changes membership. Books can belong to multiple collections without moving files or changing categories. Deleting a collection keeps its books. Collections persist in the local database and are included in backup exports.
+Use **New collection** in the sidebar to name a virtual collection and select books. The Collection selector above the library opens it; **Edit collection** renames it or changes membership. Books can belong to multiple collections without moving files or changing categories. Deleting a collection keeps its books. Collections persist in the local database and are included in backup exports.
 
 ### Contents and PDF Find
 

@@ -24,6 +24,7 @@ ShowUninstDetails show
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE CheckDirectory
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
+!define MUI_FINISHPAGE_RUN "$INSTDIR\Folio.exe"
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -36,6 +37,7 @@ Var RegisteredApps
 Var RegisteredName
 Var ShortcutDir
 Var Arguments
+Var AutoStart
 
 !macro RegistryContext PREFIX
 Function ${PREFIX}RegistryContext
@@ -134,6 +136,7 @@ Function .onInit
   StrCpy $TestId ""
   ${GetParameters} $Arguments
   ${GetOptions} $Arguments "/TESTID=" $TestId
+  ${GetOptions} $Arguments "/AUTOSTART=" $AutoStart
   Call RegistryContext
   ReadRegDWORD $0 HKCU "$RegBase" "OpenWithEnabled"
   ${If} $0 == 1
@@ -144,6 +147,13 @@ Function .onInit
     SectionSetFlags 1 1 ; The optional Open-with component is the second section.
   ${ElseIf} $0 == "0"
     SectionSetFlags 1 0
+  ${EndIf}
+FunctionEnd
+
+Function .onInstSuccess
+  ${If} $AutoStart == "1"
+  ${AndIf} $TestId == ""
+    Exec '"$INSTDIR\Folio.exe"'
   ${EndIf}
 FunctionEnd
 

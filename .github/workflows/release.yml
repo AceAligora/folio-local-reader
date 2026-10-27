@@ -1,0 +1,69 @@
+name: Publish Windows release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require a version tag matching the application
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          if ($env:GITHUB_REF -ne "refs/tags/v$version") { throw 'Run releases from the matching vMAJOR.MINOR.PATCH tag.' }
+      - run: node scripts/check.mjs
+      - run: node --test
+      - run: node scripts/build-portable.mjs
+      - run: node scripts/build-desktop.mjs
+      - run: node scripts/verify-desktop-session.mjs
+      - run: node scripts/build-installer.mjs
+      - name: Verify install, upgrade, reader lifecycle and uninstall
+        shell: pwsh
+        run: |
+          node scripts/create-release-fixture.mjs .local/release-fixture
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          ./scripts/test-installer.ps1 -Installer ".local/dist/Folio-Setup-$version-windows-x64-unsigned.exe" -Fixture .local/release-fixture/fixture.json
+      - name: Archive and verify release files
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          Compress-Archive -LiteralPath ".local/dist/Folio-$version-win32-x64" -DestinationPath ".local/dist/Folio-$version-windows-x64.zip"
+          Compress-Archive -LiteralPath ".local/dist/Folio-$version-desktop-win32-x64" -DestinationPath ".local/dist/Folio-$version-desktop-windows-x64.zip"
+          node scripts/release-manifest.mjs --allow-unsigned
+      - uses: actions/upload-artifact@v4
+        with:
+          name: folio-windows-release
+          path: |
+            .local/dist/*.exe
+            .local/dist/*.zip
+            .local/dist/*SHA256SUMS.txt
+            .local/dist/*release-manifest.json
+          if-no-files-found: error
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: folio-windows-release
+          path: release-assets
+      - name: Publish verified binaries in GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" release-assets/* --verify-tag --draft --title "Folio $RELEASE_TAG" --notes-file docs/RELEASE-NOTES.md
+          gh release edit "$RELEASE_TAG" --draft=false --latest

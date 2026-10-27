@@ -225,3 +225,29 @@ Main-profile verification for offline assistance: all 54 books and reading/colle
 - [x] Desktop/tablet/phone review, 88 passing automated checks and main-library preservation verification
 
 See [UI-DESIGN.md](UI-DESIGN.md) for contribution rules and [UI-REDESIGN-QA.md](UI-REDESIGN-QA.md) for evidence and limits. This completes the source-app interface update; the existing installer was not rebuilt.
+
+
+## Reference bookshelf interface
+
+- [x] Rounded white shell, cream/olive header, compact icon navigation and large real covers following the selected reference
+- [x] Local Discover view with unfinished books first, recent-book fill, working search and honest empty state
+- [x] Categories, format cards, collection links, Downloaded/Favorites shelves and local profile/help actions
+- [x] Quicksand/Poppins, Bootstrap icons and original sidebar artwork bundled locally with notices
+- [x] Shared theme/control treatments across reader, paged settings, history, notebook, sources, updates and dialogs
+- [x] Scope cover-cache cleanup to replaced panels so hidden library updates preserve visible discovery covers
+- [x] Equal-size reference comparison, desktop/tablet/phone checks, imports/collections, four reader formats, resume and wheel checks
+- [x] 91 passing native-suite checks, expanded new-header contrast checks, no personal reading/preferences changes
+
+See [UI-DESIGN.md](UI-DESIGN.md) and [UI-REDESIGN-QA.md](UI-REDESIGN-QA.md). This supersedes the earlier neutral visual direction. Source changes are local; the existing installer has not been rebuilt and the public repository has not been updated by this UI task.
+
+
+## GitHub Releases and Windows automatic updates — 0.10.0
+
+- [x] Published stable GitHub Releases are the update feed; drafts/prereleases/source commits do not install updates
+- [x] Automatic startup/four-hour checking, verified background download and native manual check/opt-out controls
+- [x] Strict repository URLs, GitHub-only HTTPS redirects, bounded downloads, manifest/version/platform/size/SHA-256 verification and pre-install recheck
+- [x] Save reading position and stop the owned server before launching the installer after exit; cancel installation on save failure
+- [x] Preserve per-user install location, books, profile and optional file registrations; restart after successful upgrade
+- [x] Version-tag workflow builds/tests before publishing installer, portable ZIPs, manifest and checksums to Releases
+
+Software update requests are independent of optional ebook networking and send no library content. Installed Windows copies update automatically after acceptance of Install and restart; portable/browser/source copies update manually. Existing 0.9.0 users install 0.10.0 once. Signing remains deferred by owner choice. Hosted release and installer evidence is recorded in [DISTRIBUTION.md](DISTRIBUTION.md).

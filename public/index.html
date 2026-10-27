@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#f4f3f1">
+  <meta name="theme-color" content="#efeee7">
   <title>Folio · Local ebook reader</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/pdf-text.css">
@@ -12,21 +12,34 @@
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-shell">
   <div class="mobile-appbar"><span class="mobile-brand">folio</span><button id="open-menu" aria-expanded="false" aria-controls="app-sidebar">Menu</button></div>
   <button id="nav-scrim" aria-label="Close navigation" hidden></button>
   <aside class="sidebar" id="app-sidebar" aria-label="Folio navigation">
-    <div class="brand-row"><a class="brand" href="/" aria-label="Folio home"><img src="/icons/journal-bookmark.svg" alt=""><span>folio</span></a><button id="close-menu" aria-label="Close navigation">×</button></div>
-    <p class="workspace-label">Your reading space</p>
+    <div class="brand-row"><a class="brand" href="/" aria-label="Folio home"><img src="/icons/journal-bookmark.svg" alt=""><span>FOLIO</span></a><button id="close-menu" aria-label="Close navigation"><img src="/icons/x-lg.svg" alt=""></button></div>
+    <p class="workspace-label">Menu</p>
     <nav id="main-tabs" aria-label="Main navigation">
-      <button class="nav active" data-tab="library">Library</button><button class="nav" data-tab="updates">Updates</button><button class="nav" data-tab="history">History</button>
+      <button class="nav active" data-library-view="discover" data-icon="discover">Discover</button>
+      <button class="nav" data-library-view="categories" data-icon="categories">Categories</button>
+      <button class="nav" data-tab="library" data-library-view="catalog" data-icon="library">My library</button>
+      <button class="nav" data-shelf="downloaded" data-icon="downloaded">Downloaded</button>
+      <button class="nav" data-shelf="favorites" data-icon="favorites">Favorites</button>
       <span class="nav-divider" aria-hidden="true"></span>
-      <button class="nav sidebar-action" id="add-items">Add items</button><button class="nav sidebar-action" id="add-collection">Add collection</button><button class="nav nav-settings" data-tab="settings">Settings</button>
+      <button class="nav utility-nav" data-tab="settings">Settings</button><button class="nav utility-nav" data-tab="history">History</button>
+      <button class="nav utility-nav sidebar-action" id="add-items">Add books</button><button class="nav utility-nav sidebar-action" id="add-collection">New collection</button>
+      <button class="nav utility-nav" id="show-help" data-icon="help">Help &amp; about</button>
     </nav>
-    <div class="sidebar-bottom"><span class="offline">On this device</span><p>Your library. Your place to read.</p></div>
+    <div class="sidebar-bottom"><img class="reading-space-art" src="/art/reading-space.png" alt=""><span>YOUR BOOK LIBRARY</span></div>
   </aside>
   <main id="main-content" tabindex="-1">
+    <div class="workspace-account">
+      <details id="workspace-profile"><summary><span class="profile-avatar"><img src="/icons/person-fill.svg" alt=""></span><span>My bookshelf</span><img class="profile-chevron" src="/icons/chevron-down.svg" alt=""></summary><div class="profile-menu"><p>Local &amp; private</p><button id="profile-library">Open my library</button><button id="profile-queue">Reading queue</button><button id="profile-appearance">Appearance</button><button id="profile-settings">Settings</button></div></details>
+      <button class="updates-shortcut" id="workspace-updates" data-tab="updates" aria-label="Updates" title="Library updates"><img src="/icons/bell-fill.svg" alt=""></button>
+    </div>
     <header class="page-header"><div><h1 id="page-heading">Library</h1><p class="muted" id="summary">Your books, right where you left them.</p></div><button id="scan" title="Find new and changed files in your ebook folder">Scan library</button></header>
     <div class="scan-status" role="status" id="status">Ready</div><button id="cancel" hidden>Cancel scan</button>
+    <section id="discover-panel" class="discovery-panel" aria-label="Discover your books" hidden></section>
+    <section id="categories-panel" class="workspace-panel" aria-label="Categories and collections" hidden></section>
     <section id="library-panel" aria-label="Your library">
       <section class="setup" id="setup"><div><h2>A home for your books</h2><p>Choose your existing ebook folder. Original files stay untouched.</p></div><form id="folder-form"><label for="folder">Library folder</label><div class="row"><input id="folder" placeholder="Enter an absolute folder path" required><button class="primary">Save folder</button></div></form></section>
       <div class="library-topbar"><label class="global-search"><img src="/icons/search.svg" alt=""><input id="search" type="search" aria-label="Search books" placeholder="Find a book in your library…"></label><button id="reading-queue">Reading queue</button></div>
@@ -47,15 +60,16 @@
         <p class="library-hint">Page counts appear after opening a book. Latest change and last checked refer to local scans.</p>
       </section>
       <nav id="alphabet" class="alphabet" aria-label="Filter by initial letter"></nav><section id="books" class="books" aria-label="Books"></section>
-      <div class="pagination"><button id="prev">← Previous</button><span id="page-label"></span><button id="next">Next →</button></div>
+      <div class="pagination"><button id="prev"><img src="/icons/chevron-left.svg" alt="">Previous</button><span id="page-label"></span><button id="next">Next<img src="/icons/chevron-right.svg" alt=""></button></div>
       <section id="issues" hidden><h2>Library health</h2><p>Issues from the latest scan; source files are never deleted.</p><ul id="issue-list"></ul></section>
     </section>
     <section id="updates-panel" class="workspace-panel" hidden></section><section id="browse-panel" class="workspace-panel" hidden></section><section id="history-panel" class="workspace-panel" hidden></section><section id="settings-panel" class="workspace-panel" hidden></section><p id="message" role="alert"></p>
   </main>
+  </div>
   <div id="privacy-screen" hidden><h1>Folio</h1><p>Contents hidden while this window is inactive.</p></div>
   <dialog id="reader" aria-labelledby="reader-title">
     <header class="reader-toolbar">
-      <button id="close-reader">← Library</button><strong id="reader-title"></strong><button id="toggle-navigation" aria-expanded="false" aria-controls="reader-navigation">Contents &amp; search</button>
+      <button id="close-reader"><img src="/icons/chevron-left.svg" alt="">Library</button><strong id="reader-title"></strong><button id="toggle-navigation" aria-expanded="false" aria-controls="reader-navigation">Contents &amp; search</button>
       <details class="reader-options" id="reader-options"><summary>Reading options</summary><div class="reader-options-panel">
         <h2>Reading options</h2>
         <label>Reading mode<select id="reader-mode" aria-label="Reading mode"><option value="paged-ltr">Paged →</option><option value="paged-rtl">Paged ←</option><option value="paged-vertical">Paged ↓</option><option value="continuous-vertical">Continuous ↓</option><option value="continuous-ltr">Continuous →</option><option value="continuous-rtl">Continuous ←</option><option value="webtoon">Webtoon</option></select></label>
@@ -73,14 +87,14 @@
     <div id="serial-reader-nav" class="serial-reader-nav" aria-label="Serialized chapter navigation" hidden></div>
     <div class="reader-workspace">
       <section id="reader-navigation" aria-label="Book navigation" hidden>
-        <div class="navigation-heading"><h2>Book navigation</h2><button id="close-navigation" aria-label="Close book navigation">×</button></div><div id="contents"></div>
+        <div class="navigation-heading"><h2>Book navigation</h2><button id="close-navigation" aria-label="Close book navigation"><img src="/icons/x-lg.svg" alt=""></button></div><div id="contents"></div>
         <details id="notes-section"><summary>Reading notes</summary><div id="reader-notes"></div></details><details><summary>Offline reading tools</summary><div id="offline-tools"></div></details>
         <form id="pdf-search-form" hidden><label for="pdf-query">Find text in this PDF</label><div class="row"><input id="pdf-query" type="search" maxlength="150" required placeholder="Search this book…"><button class="primary">Find</button></div><button type="button" id="cancel-search" hidden>Stop search</button></form><p id="search-status" role="status"></p><div id="search-results"></div>
       </section>
       <div id="reader-body" tabindex="0" aria-label="Reading page"></div><section id="comparison-panel" aria-label="Comparison book" hidden></section>
     </div>
     <footer class="reader-pagination">
-      <div class="page-turner"><button id="back-page" aria-label="Previous page">←</button><label>Page <input id="page-input" type="number" min="1" value="1"></label><span id="position" role="status"></span><button id="next-page" aria-label="Next page">→</button></div>
+      <div class="page-turner"><button id="back-page" aria-label="Previous page"><img src="/icons/chevron-left.svg" alt=""></button><label>Page <input id="page-input" type="number" min="1" value="1"></label><span id="position" role="status"></span><button id="next-page" aria-label="Next page"><img src="/icons/chevron-right.svg" alt=""></button></div>
       <div class="reader-quick-tools"><label>Zoom <select id="zoom"><option value="fit">Fit page</option><option value="0.75">75%</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label><button id="bookmark">Bookmark page</button></div>
     </footer>
     <div id="custom-toolbar" class="reader-details" hidden></div><button id="exit-focus-reading">Exit focus reading · Esc</button><p id="reader-note" role="status"></p>

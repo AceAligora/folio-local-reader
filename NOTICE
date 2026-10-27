@@ -24,6 +24,15 @@ Geist variable font from Google Fonts / The Geist Project Authors, SIL Open Font
 Regular font, license, upstream blob and SHA-256 retained in public/fonts/Geist*.
 Upstream: https://github.com/vercel/geist-font
 
+Quicksand variable font and Poppins SemiBold from Google Fonts, SIL Open Font License 1.1.
+Fonts, separate OFL notices, upstream Git blob identifiers and SHA-256 checksums
+are retained in public/fonts/{quicksand,poppins}-* and the corresponding .ttf files.
+Upstream: https://github.com/google/fonts
+
+Original Folio sidebar artwork: public/art/reading-space.png.
+Generated for this project with OpenAI image generation; no third-party book
+covers, account portraits or reference screenshots are bundled in this artwork.
+
 Project-local contributor tool: Leonxlnx/taste-skill, MIT.
 Pinned source, license and contributor instructions retained in .agents/skills/design-taste-frontend.
 This design guidance is separate from the Folio app runtime.

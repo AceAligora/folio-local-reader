@@ -1,3 +1,4 @@
+import {mountDiscovery,mountCategories} from './discovery.js';
 import {shortcutDefaults,shortcutKeys} from './shortcuts.js';
 import {mountChapterFeeds,mountSourceSessions} from './serial-ui.js';
 import {mountSourceUpdates} from './source-update-ui.js';
@@ -12,34 +13,24 @@ import {clearCoverCache,observeCover} from './covers.js';
 const $=id=>document.getElementById(id);
 export let preferences={resume:true};
 let reloadBooks,openBook,activeTab='library',settingsPage=sessionStorage.getItem('folio-settings-page')||'';
+let libraryView=sessionStorage.getItem('folio-library-view')||'discover',catalogShelf='',viewGeneration=0;
 const tabs=['library','updates','history','settings'];
 const labels={library:'Library',updates:'Updates',browse:'Browse',history:'History',settings:'Settings'};
 async function request(path,data){const res=await fetch('/api/'+path,data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const body=await res.json();if(!res.ok)throw new Error(body.error);return body;}
 function e(tag,text,cls){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(cls)el.className=cls;return el;}
-// Decorative, locally drawn icons inherit each menu's theme and selected color.
-const menuPaths={
-  library:'M4 4h4v16H4z M10 4h4v16h-4z M16 5l4-1 3 15-4 1z',
-  'add-items':'M14 3H5v18h14V8z M14 3v5h5 M8 14h8 M12 10v8',
-  'add-collection':'M3 7V5h7l2 2h9v13H3z M8 13h8 M12 9v8',
-  updates:'M20 9a8 8 0 0 0-14-3L3 9 M3 4v5h5 M4 15a8 8 0 0 0 14 3l3-3 M16 15h5v5',
-  history:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 7v5l3 2',
-  settings:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8',
-  general:'M4 6h9 M17 6h3 M4 12h3 M11 12h9 M4 18h9 M17 18h3 M13 3v6 M7 9v6 M13 15v6',
-  appearance:'M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 1-4c-1-1 0-3 2-3h2c5 0 3-11-6-11 M7 10h.01 M10 6h.01 M15 7h.01 M6 14h.01',
-  reader:'M12 6c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V5c-4-1-7-1-10 1z M12 6v15',
-  browse:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M16 8l-2 6-6 2 2-6z',
-  storage:'M3 4h18v5H3z M5 9v12h14V9 M9 13h6',
-  security:'M12 3l8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6z M8 12l3 3 5-6',
-  insights:'M4 3v17h17 M8 16v-5 M13 16V6 M18 16V9',
-  notebook:'M5 3h15v18H5z M3 7h4 M3 12h4 M3 17h4 M10 8h6 M10 12h6 M10 16h4',
-  'chapter-feeds':'M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h4',
-  'source-sessions':'M12 3a7 7 0 0 0-7 7v4h14v-4a7 7 0 0 0-7-7 M8 14v7h8v-7 M12 17v1',
-  'source-updates':'M4 14a5 5 0 0 1 2-9 6 6 0 0 1 11 2 4 4 0 0 1 3 7 M8 16l4-4 4 4 M12 12v9',
-  health:'M3 4h18v16H3z M3 12h5l2-4 4 8 2-4h5',
-  text:'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14 M15 15l6 6 M7 7h6 M7 10h6 M7 13h3'
-};
-function menuIcon(name){const ns='http://www.w3.org/2000/svg',icon=document.createElementNS(ns,'svg'),path=document.createElementNS(ns,'path');icon.setAttribute('class','menu-icon');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');icon.setAttribute('focusable','false');path.setAttribute('d',menuPaths[name]);icon.append(path);return icon;}
-function initializeMenuIcons(){for(const control of document.querySelectorAll('#main-tabs > button')){const name=control.dataset.tab||control.id;if(menuPaths[name]&&!control.querySelector('.menu-icon'))control.prepend(menuIcon(name));}}
+// Original Bootstrap Icons are bundled locally, with their upstream MIT license.
+const menuAssets={discover:'house-door-fill',categories:'grid-fill',library:'book-fill',downloaded:'cloud-arrow-down-fill',favorites:'heart-fill','add-items':'plus-circle-fill','add-collection':'folder-plus',updates:'bell-fill',history:'clock-history',settings:'gear-fill',help:'question-circle-fill',general:'sliders',appearance:'palette-fill',reader:'book-fill',browse:'globe',storage:'hdd-fill',security:'shield-lock-fill',insights:'bar-chart-fill',notebook:'journal-text','chapter-feeds':'rss-fill','source-sessions':'shield-lock-fill','source-updates':'arrow-repeat',health:'check-circle-fill',text:'search-heart'};
+function menuIcon(name){const frame=e('span',undefined,'menu-symbol'),icon=e('img');icon.className='menu-icon';icon.src='/icons/'+(menuAssets[name]||'book-fill')+'.svg';icon.alt='';frame.setAttribute('aria-hidden','true');frame.append(icon);return frame;}
+function initializeMenuIcons(){for(const control of document.querySelectorAll('#main-tabs > button')){const name=control.dataset.icon||control.dataset.tab||control.id;if(!control.querySelector('.menu-symbol'))control.prepend(menuIcon(name));}}
+function syncNavigation(){
+  for(const control of document.querySelectorAll('#main-tabs > button')){
+    const selected=control.dataset.shelf?activeTab==='library'&&libraryView==='catalog'&&catalogShelf===control.dataset.shelf:control.dataset.libraryView?activeTab==='library'&&libraryView===control.dataset.libraryView&&(libraryView!=='catalog'||!['favorites','downloaded'].includes(catalogShelf)):control.dataset.tab===activeTab;
+    control.classList.toggle('active',selected);if(selected)control.setAttribute('aria-current','page');else control.removeAttribute('aria-current');
+  }
+}
+async function openCatalog(filters={}){await show('library',{view:'catalog'});document.dispatchEvent(new CustomEvent('folio-open-library',{detail:filters}));}
+async function openSettingsPage(page=''){settingsPage=page;await show('settings');}
+function showHelp(){const dialog=e('dialog',undefined,'action-dialog');dialog.setAttribute('aria-label','Help and about Folio');dialog.append(e('h2','Your books, your reading space'),e('p','Folio reads PDF, EPUB, image books and CBZ comics on this device. Add an ebook folder or import files, then open a cover to start reading.'),e('p','Your place is saved automatically. Turn pages with the arrow keys or mouse wheel. Contents & search includes chapters, notes and offline reading tools.'),e('p','Manage collections in Categories, and find optional online sources under Settings. Networking stays off until you enable it.'));const close=button(dialog,'Close',()=>dialog.close());document.body.append(dialog);dialog.onclose=()=>dialog.remove();dialog.showModal();close.focus();}
 // Mobile navigation is a modal sheet; its hidden links cannot receive focus.
 function initializeShell(){
   const folded=matchMedia('(max-width:1000px)'),sidebar=$('app-sidebar'),main=$('main-content');
@@ -108,6 +99,7 @@ function apply(){
   $('reader').classList.toggle('hide-progress',!preferences.showProgress);
   document.documentElement.style.setProperty('--glass-blend',preferences.blend+'%');
   for(const button of document.querySelectorAll('[data-tab]'))button.hidden=!preferences.tabs.includes(button.dataset.tab);
+  for(const button of document.querySelectorAll('[data-library-view],[data-shelf]'))button.hidden=!preferences.tabs.includes('library');
   for(const input of document.querySelectorAll('[data-pref]')){if(document.activeElement===input)continue;const value=preferences[input.dataset.pref];if(input.type==='checkbox')input.checked=value;else input.value=value;}
   const selected=$('category-filter').value;$('category-filter').replaceChildren(new Option('All categories',''),...preferences.categories.map(c=>new Option(c,c)));$('category-filter').value=selected;
 }
@@ -116,15 +108,22 @@ function section(parent,title,description){const block=e('section',undefined,'se
 function button(parent,label,fn){const b=e('button',label);b.onclick=safe(fn);parent.append(b);return b;}
 function download(name,body){const url=URL.createObjectURL(new Blob([JSON.stringify(body,null,2)],{type:'application/json'}));const a=e('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function pending(parent,text){const p=e('p','Not available yet: '+text,'pending');parent.append(p);}
-async function show(tab){
+async function show(tab,{view}={}){
+  const generation=++viewGeneration;$('workspace-profile').open=false;
+  if(view)libraryView=view;if(!['discover','catalog','categories'].includes(libraryView))libraryView='discover';
+  if(preferences.keepTabState)sessionStorage.setItem('folio-library-view',libraryView);
   if(tab==='browse'){settingsPage='browse';tab='settings';}
   $('browse-panel').hidden=true;
   if(!tabs.includes(tab))tab='library';
   if(preferences.keepScroll)sessionStorage.setItem('folio-scroll-'+activeTab,String(window.scrollY));activeTab=tab;
   for(const name of tabs)$(name+'-panel').hidden=name!==tab;
+  $('discover-panel').hidden=tab!=='library'||libraryView!=='discover';$('categories-panel').hidden=tab!=='library'||libraryView!=='categories';$('library-panel').hidden=tab!=='library'||libraryView!=='catalog';
+  document.body.dataset.libraryView=tab==='library'?libraryView:'';
   for(const b of document.querySelectorAll('[data-tab]')){b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false');}
   document.body.dataset.page=tab;$('page-heading').textContent=labels[tab];$('scan').hidden=!['library','updates'].includes(tab);$('status').hidden=!['library','updates'].includes(tab);$('summary').textContent={library:'Your books, right where you left them.',updates:'Changes in your local collection.',history:'Pick up where you left off.',settings:'Preferences for a quieter reading space.'}[tab];
   if(preferences.lastTab!==tab)await savePreferences({lastTab:tab});
+  if(tab==='library'){syncNavigation();$('page-heading').textContent={discover:'Discover',catalog:'My library',categories:'Categories'}[libraryView];const options={preferences,openBook,openCatalog,openCategories:()=>show('library',{view:'categories'}),addBooks:()=>$('add-items').click(),manageCategories:()=>openSettingsPage('library'),addCollection:()=>$('add-collection').click(),isCurrent:()=>generation===viewGeneration};if(libraryView==='discover')await mountDiscovery($('discover-panel'),options);if(libraryView==='categories')await mountCategories($('categories-panel'),options);}
+  syncNavigation();
   if(tab==='settings')await settings();if(tab==='updates')await updates();if(tab==='history')await history();
   window.scrollTo(0,preferences.keepScroll?Number(sessionStorage.getItem('folio-scroll-'+tab)||0):0);
 }
@@ -138,7 +137,7 @@ async function history(){
   if(!result.total)panel.append(e('p','Your reading history will appear here after you open a book.','empty'));
   if(result.total>60)panel.append(e('p','Showing the latest 60 books.','muted'));
 }
-async function browse(destination){await mountNetwork(destination||$('browse-panel'),{preferences,savePreferences,openLocal:()=>show('library')});}
+async function browse(destination){await mountNetwork(destination||$('browse-panel'),{preferences,savePreferences,openLocal:()=>openCatalog({})});}
 function displayControls(parent){field(parent,'Display mode','display',[['grid','Grid'],['list','List'],['descriptive','Descriptive list']]);const count=field(parent,'Items per row (1–10)','columns');count.min=1;count.max=10;const controls=e('div',undefined,'row');button(controls,'−',()=>savePreferences({columns:Math.max(1,preferences.columns-1)}));button(controls,'+',()=>savePreferences({columns:Math.min(10,preferences.columns+1)}));parent.append(controls);for(const badge of ['unread','downloaded','completed']){const row=e('label',undefined,'setting-row');row.append(e('span',badge[0].toUpperCase()+badge.slice(1)+' badge'));const input=e('input');input.type='checkbox';input.checked=preferences.badges.includes(badge);input.onchange=safe(async()=>{await savePreferences({badges:input.checked?[...new Set([...preferences.badges,badge])]:preferences.badges.filter(b=>b!==badge)});await reloadBooks();});row.append(input);parent.append(row);}}
 async function settings(){
   const host=$('settings-panel');host.replaceChildren();
@@ -213,7 +212,16 @@ async function settings(){
   }
   insights.append(e('p',`Total: ${(total/3600).toFixed(2)} hours`));
 }
-export async function initializeWorkspace(reload,open){reloadBooks=reload;openBook=open;initializeMenuIcons();initializeShell();preferences=await request('preferences');apply();displayControls($('display-controls'));for(const b of document.querySelectorAll('[data-tab]'))b.onclick=safe(()=>show(b.dataset.tab));initializeLibraryTools();await initializeActions({showLibrary:()=>show('library'),reload:reloadBooks});const tab=preferences.defaultTab==='last'?preferences.lastTab:preferences.defaultTab;await show(preferences.tabs.includes(tab)?tab:'library');
+export async function initializeWorkspace(reload,open){reloadBooks=reload;openBook=open;initializeMenuIcons();initializeShell();preferences=await request('preferences');apply();displayControls($('display-controls'));for(const b of document.querySelectorAll('[data-tab]'))b.onclick=safe(()=>show(b.dataset.tab));
+  if(!preferences.keepTabState)libraryView='discover';
+  for(const b of document.querySelectorAll('[data-library-view]'))b.onclick=safe(()=>show('library',{view:b.dataset.libraryView}));
+  for(const b of document.querySelectorAll('[data-shelf]'))b.onclick=safe(()=>openCatalog({shelf:b.dataset.shelf}));
+  $('show-help').onclick=showHelp;$('profile-library').onclick=safe(()=>openCatalog({}));$('profile-queue').onclick=()=>{$('workspace-profile').open=false;$('reading-queue').click();};$('profile-appearance').onclick=safe(()=>openSettingsPage('appearance'));$('profile-settings').onclick=safe(()=>openSettingsPage());
+  document.addEventListener('pointerdown',event=>{if(!$('workspace-profile').contains(event.target))$('workspace-profile').open=false;});
+  $('workspace-profile').addEventListener('keydown',event=>{if(event.key==='Escape'){$('workspace-profile').open=false;$('workspace-profile').querySelector('summary').focus();}});
+  document.addEventListener('folio-library-view-changed',event=>{catalogShelf=event.detail.shelf;syncNavigation();});
+  document.addEventListener('folio-serial-changed',()=>{if(activeTab==='library'&&libraryView==='discover')void show('library',{view:'discover'}).catch(error=>$('message').textContent=error.message);});
+  initializeLibraryTools();await initializeActions({showLibrary:()=>show('library',{view:'catalog'}),reload:reloadBooks});const tab=preferences.defaultTab==='last'?preferences.lastTab:preferences.defaultTab;await show(preferences.tabs.includes(tab)?tab:'library');
   const privacy=hidden=>{const obscure=Boolean(preferences.secureScreen&&hidden);$('privacy-screen').hidden=!obscure;document.body.classList.toggle('obscured',obscure);};
   document.addEventListener('visibilitychange',()=>privacy(document.hidden));window.addEventListener('blur',()=>privacy(true));window.addEventListener('focus',()=>privacy(false));
   document.addEventListener('folio-scan-complete',()=>{if(activeTab==='updates')void updates().catch(error=>$('message').textContent=error.message);});

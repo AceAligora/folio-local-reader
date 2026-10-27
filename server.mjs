@@ -76,7 +76,7 @@ const server = http.createServer(async(req,res)=>{
       res.setHeader('Set-Cookie',`reader=${token}; HttpOnly; SameSite=Strict; Path=/`);
       res.setHeader('Content-Type',mime['.html']); return res.end(await readFile(path.join(home,'public/index.html')));
     }
-    if (['/read-aloud.js','/annotations.js','/reading-queue.js','/shortcuts.js','/serial-ui.js','/source-update-ui.js','/native-source-ui.js','/epub-position.js','/compare-reader.js','/text-library.js','/crop.js','/accessibility-reader.js','/library-tools.js','/book-details.js','/archive-reader.js','/security-ui.js','/continuous-reader.js','/notebook.js','/backup-ui.js','/reader-navigation.js','/actions.js','/app.js','/workspace.js','/network-ui.js','/wheel.js','/spreads.js','/pdf-reader.js','/epub-reader.js','/covers.js','/pdf-text.css','/style.css'].includes(url.pathname) && req.method==='GET') {
+    if (['/discovery-model.js','/discovery.js','/read-aloud.js','/annotations.js','/reading-queue.js','/shortcuts.js','/serial-ui.js','/source-update-ui.js','/native-source-ui.js','/epub-position.js','/compare-reader.js','/text-library.js','/crop.js','/accessibility-reader.js','/library-tools.js','/book-details.js','/archive-reader.js','/security-ui.js','/continuous-reader.js','/notebook.js','/backup-ui.js','/reader-navigation.js','/actions.js','/app.js','/workspace.js','/network-ui.js','/wheel.js','/spreads.js','/pdf-reader.js','/epub-reader.js','/covers.js','/pdf-text.css','/style.css'].includes(url.pathname) && req.method==='GET') {
       res.setHeader('Content-Type',mime[path.extname(url.pathname)]); return res.end(await readFile(path.join(home,'public',url.pathname.slice(1))));
     }
     if (!authorized) return json(res,401,{error:'Open the reader home page first.'});
@@ -86,9 +86,10 @@ const server = http.createServer(async(req,res)=>{
     const unlockCookie=value=>res.setHeader('Set-Cookie','folioUnlock='+value+'; HttpOnly; SameSite=Strict; Path=/');
     if(req.method==='GET'&&url.pathname==='/api/lock/status')return json(res,200,{configured:appLock.configured(),locked:!appLock.authorized(unlocked)});
     if(req.method==='POST'&&url.pathname==='/api/lock/unlock'){if(req.headers.origin!==origin||!req.headers['content-type']?.startsWith('application/json'))return json(res,403,{error:'Local JSON request required.'});const data=await body(req);unlockCookie(await appLock.unlock(data.password,req.socket.remoteAddress));return json(res,200,{ok:true});}
-    if(!appLock.authorized(unlocked)&&!url.pathname.startsWith('/icons/')&&!url.pathname.startsWith('/fonts/')&&!url.pathname.startsWith('/vendor/'))return json(res,423,{error:'Folio is locked. Unlock the app to continue.'});
+    if(!appLock.authorized(unlocked)&&!url.pathname.startsWith('/icons/')&&!url.pathname.startsWith('/fonts/')&&!url.pathname.startsWith('/vendor/')&&url.pathname!=='/art/reading-space.png')return json(res,423,{error:'Folio is locked. Unlock the app to continue.'});
     if(req.method==='GET'&&url.pathname==='/api/diagnostics')return json(res,200,diagnostics.list(url.searchParams.get('kind')||'log'));
-    if(req.method==='GET'&&['/fonts/Roboto.ttf','/fonts/Geist.ttf'].includes(url.pathname)){res.setHeader('Content-Type','font/ttf');return res.end(await readFile(path.join(home,'public',url.pathname.slice(1))));}
+    if(req.method==='GET'&&['/fonts/Roboto.ttf','/fonts/Geist.ttf','/fonts/Quicksand.ttf','/fonts/Poppins-SemiBold.ttf'].includes(url.pathname)){res.setHeader('Content-Type','font/ttf');return res.end(await readFile(path.join(home,'public',url.pathname.slice(1))));}
+    if(req.method==='GET'&&url.pathname==='/art/reading-space.png'){res.setHeader('Content-Type','image/png');return res.end(await readFile(path.join(home,'public/art/reading-space.png')));}
     if(req.method==='GET'&&/^\/icons\/[a-z-]+\.svg$/.test(url.pathname)){res.setHeader('Content-Type','image/svg+xml');return res.end(await readFile(path.join(home,'public',url.pathname.slice(1))));}
     if ((url.pathname.startsWith('/vendor/pdfjs/')||url.pathname.startsWith('/vendor/fflate/')) && req.method==='GET') {
       const base=path.join(home,'public','vendor');

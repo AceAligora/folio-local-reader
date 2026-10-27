@@ -23,7 +23,7 @@ test('semantic theme colors meet minimum text contrast for main reading controls
   const css=readFileSync(new URL('../public/style.css',import.meta.url),'utf8');
   for(const block of css.matchAll(/(?:^|\n)(:root(?:\[data-theme=(?:dark|sepia)\])?)\{([^}]+)\}/g)){
     const values=Object.fromEntries([...block[2].matchAll(/--([\w-]+):(#(?:[a-f0-9]{6}|[a-f0-9]{3}))(?=;|\})/g)].map(([,key,value])=>[key,value.length===4?'#'+value.slice(1).split('').map(c=>c+c).join(''):value]));
-    for(const surface of ['bg','surface','surface-2','sidebar'])for(const color of ['text','muted'])assert.ok(contrast(values[color],values[surface])>=4.5,`${block[1]} ${color} on ${surface}`);
+    for(const surface of ['bg','surface','surface-2','sidebar','hero','hero-side'])for(const color of ['text','muted'])assert.ok(contrast(values[color],values[surface])>=4.5,`${block[1]} ${color} on ${surface}`);
     if(values['accent-text'])assert.ok(contrast(values['accent-text'],values.accent)>=4.5);
   }
 });
