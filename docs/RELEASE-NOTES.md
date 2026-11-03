@@ -1,4 +1,4 @@
-# Folio 0.11.1 — local book recovery
+# Folio 0.11.2 — local book recovery
 
 Recover reading data after moving or copying your library to another drive, without relying on filenames or filesystem identity.
 
@@ -10,12 +10,14 @@ Recover reading data after moving or copying your library to another drive, with
 
 ## Install or update
 
-Download **Folio-Setup-0.11.1-windows-x64-unsigned.exe**, or use **Updates → Check for updates** in the installed 0.10.0 desktop app. Automatic checks continue at startup and every four hours. Portable ZIPs update manually. The release remains unsigned by owner choice.
+Download **Folio-Setup-0.11.2-windows-x64-unsigned.exe**, or use **Updates → Check for updates** in the installed 0.10.0 desktop app. Automatic checks continue at startup and every four hours. Portable ZIPs update manually. The release remains unsigned by owner choice.
 
 ## Compatibility and limits
 
 This release adds **profile schema 8**. Older builds refuse an upgraded profile; keep a pre-upgrade full-profile backup if you need to downgrade. Existing book/reading data is preserved. Fingerprints must be prepared before originals disappear; otherwise use manual relinking. Image folders and files over 2 GB also use manual relinking. Matches reflect the date last remembered and never trigger an automatic merge. Physical second-drive hardware testing remains open; tests simulate changing library roots with generated files.
 
-See [content recovery instructions](https://github.com/AceAligora/folio-local-reader/blob/v0.11.1/docs/CONTENT-RECOVERY.md).
+See [content recovery instructions](https://github.com/AceAligora/folio-local-reader/blob/v0.11.2/docs/CONTENT-RECOVERY.md).
 
 CI runs the complete test suite with two concurrent workers to avoid integration-server startup timeouts on constrained Windows runners. The earlier 0.11.0 tag failed its CI gate and was not published as a release.
+
+Same-folder recovery and manual relinking transfer reading time away from the missing record, avoiding duplicate hours in Reading insights. Prior-library records keep their own history. The unpublished 0.11.1 build was cancelled during final review so this fix ships together with recovery.

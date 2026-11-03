@@ -49,7 +49,7 @@ node --test
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [architecture](docs/IMPLEMENTATION.md), [UI design](docs/UI-DESIGN.md), [security](SECURITY.md) and [third-party notices](NOTICE). Original Folio code is licensed under **Apache-2.0**; bundled components retain their own licenses. Contributions are welcome through issues and pull requests. Never include personal books, profiles, credentials or private screenshots.
 
-The current release is **0.11.1**. Windows installers, portable ZIPs and checksums are distributed in [GitHub Releases](https://github.com/AceAligora/folio-local-reader/releases), while the repository contains source. Tagged versions run the Windows release workflow before publication. See [distribution and updater details](docs/DISTRIBUTION.md).
+The current release is **0.11.2**. Windows installers, portable ZIPs and checksums are distributed in [GitHub Releases](https://github.com/AceAligora/folio-local-reader/releases), while the repository contains source. Tagged versions run the Windows release workflow before publication. See [distribution and updater details](docs/DISTRIBUTION.md).
 
 ## Detailed feature notes · 0.9.0
 

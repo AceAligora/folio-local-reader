@@ -97,6 +97,7 @@ test('reviewed cross-root recovery preserves source records and merges destinati
   const recovered = library.collections().find(item => !item.generated && item.name.startsWith('Study (recovered'));
   assert.ok(recovered); assert.ok(recovered.books.includes(to.id)); assert.ok(!recovered.books.includes(other.id));
   assert.deepEqual(sourceRow(library, from.id), oldRow); assert.equal(seconds(library, from.id), oldTime);
+  assert.equal(library.insights().reduce((sum, book) => sum + book.seconds, 0), 12, 'Previous-root time stays intact but is not counted twice in the current library.');
   const stored = JSON.parse(library.db.prepare('SELECT value FROM config WHERE key=?').get('collections').value);
   assert.deepEqual(stored.find(item => item.id === originalCollection.id), originalCollection);
   assert.equal(await readFile(path.join(first, 'Original.pdf'), 'utf8'), originalText);
@@ -106,17 +107,24 @@ test('reviewed cross-root recovery preserves source records and merges destinati
 
 test('same-root missing files can be reviewed without automatically merging the replacement', () => fixture(async ({library, first}) => {
   await writeFile(path.join(first, 'Original.pdf'), originalText); await library.scan();
-  const from = library.list().books[0]; library.save(from.id, {page: 2, total: 8});
+  const from = library.list().books[0]; library.save(from.id, {page: 2, total: 8, seconds: 12});
   changeQueue(library, {id: from.id, action: 'add'});
   const recovery = new ContentRecovery(library); await recovery.run();
   await copyFile(path.join(first, 'Original.pdf'), path.join(first, 'Replacement.pdf')); await rm(path.join(first, 'Original.pdf')); await library.scan();
   const to = library.list().books.find(book => book.available); await recovery.run();
   assert.ok(recovery.result().matches.some(item => item.from.id === from.id && item.to.id === to.id));
   assert.equal(library.book(to.id).state.page, undefined);
+  library.save(to.id, {page: 1, total: 8, seconds: 3});
   const plan = await recovery.preview(from.id, to.id);
-  await recovery.apply(from.id, to.id, plan.token, async () => 'safety.json');
+  let safety;
+  await recovery.apply(from.id, to.id, plan.token, async backup => {safety = backup; return 'safety.json';});
   assert.equal(library.book(to.id).state.page, 2); assert.equal(library.book(from.id).available, 0);
   assert.deepEqual(visibleQueue(library).map(book => book.id), [to.id]);
+  assert.equal(seconds(library, to.id), 12);
+  assert.equal(library.db.prepare('SELECT seconds FROM reading WHERE book=?').get(from.id), undefined);
+  assert.equal(library.insights().reduce((sum, book) => sum + book.seconds, 0), 12, 'One relinked book must contribute only its retained MAX reading time.');
+  assert.equal(safety.reading.find(book => book.id === from.id).seconds, 12);
+  assert.equal(safety.reading.find(book => book.id === to.id).seconds, 3);
 }));
 
 test('books from one previous collection join its recovered collection without merging an unrelated same-name collection', () => fixture(async ({library, first, second}) => {

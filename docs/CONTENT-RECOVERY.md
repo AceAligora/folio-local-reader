@@ -1,6 +1,6 @@
 # Recovering a moved local library
 
-Folio 0.11.1 can reconnect reading data to byte-identical PDF, EPUB and CBZ copies, including after switching the library folder to another drive. It uses locally remembered SHA-256 fingerprints, never filenames alone. No ebook data is sent over the network.
+Folio 0.11.2 can reconnect reading data to byte-identical PDF, EPUB and CBZ copies, including after switching the library folder to another drive. It uses locally remembered SHA-256 fingerprints, never filenames alone. No ebook data is sent over the network.
 
 ## Before moving books
 
@@ -16,7 +16,7 @@ Folio 0.11.1 can reconnect reading data to byte-identical PDF, EPUB and CBZ copi
 3. Select the intended replacement and choose **Review matching copy**. Check the original/replacement paths, saved position, note count and fingerprint date. Multiple identical copies are not chosen automatically.
 4. Choose **Apply reviewed recovery**. Folio rehashes the replacement, rejects changed files or stale reading data, and saves a reading-data safety backup before transferring.
 
-The previous record's position/preferences take priority; notes, bookmarks and tags combine without silently dropping data. Reading time uses the larger total rather than adding possibly overlapping sessions. Cross-folder recovery leaves the previous-root record, time and collections unchanged. Manual collection membership is copied into source-mapped collections in the current library; an unrelated collection with the same name is preserved, with a distinct recovered name used instead. Later books from the same previous collection join that recovered collection. For a missing book in the same root, queue and manual collection membership move to the available replacement.
+The previous record's position/preferences take priority; notes, bookmarks and tags combine without silently dropping data. Reading time uses the larger total rather than adding possibly overlapping sessions. Cross-folder recovery leaves the previous-root record, time and collections unchanged. Manual collection membership is copied into source-mapped collections in the current library; an unrelated collection with the same name is preserved, with a distinct recovered name used instead. Later books from the same previous collection join that recovered collection. For a missing book in the same root, reading time, queue and manual collection membership move to the available replacement.
 
 ## Limits and safety
 

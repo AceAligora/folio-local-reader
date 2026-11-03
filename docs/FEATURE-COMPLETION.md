@@ -253,7 +253,7 @@ See [UI-DESIGN.md](UI-DESIGN.md) and [UI-REDESIGN-QA.md](UI-REDESIGN-QA.md). Thi
 Software update requests are independent of optional ebook networking and send no library content. Installed Windows copies update automatically after acceptance of Install and restart; portable/browser/source copies update manually. Existing 0.9.0 users install 0.10.0 once. Signing remains deferred by owner choice. Hosted release and installer evidence is recorded in [DISTRIBUTION.md](DISTRIBUTION.md).
 
 
-## Local content recovery — 0.11.1
+## Local content recovery — 0.11.2
 
 - [x] Explicit, bounded SHA-256 preparation for all visible local PDF/EPUB/CBZ files, including unique books
 - [x] Persisted fingerprints survive restart; unchanged verified files reuse their snapshot
