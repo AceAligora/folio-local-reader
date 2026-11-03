@@ -31,6 +31,7 @@ Folio binds to `127.0.0.1`; do not expose its port publicly or through a tunnel.
 - Local notes, colored highlights, bookmarks, PDF search and a searchable reading notebook.
 - Light, dark and sepia themes; separate settings pages and responsive navigation.
 - Folder watching, duplicate review, local text indexing and recovery backups.
+- Reviewed content-fingerprint recovery for PDF/EPUB/CBZ files moved to another drive.
 - Optional Windows OCR, installed offline voices and an Electron desktop build.
 - Installed Windows automatic updates from published GitHub Releases, with verified downloads and a save-before-restart installation step.
 - Opt-in source adapters and RSS/Atom chapter feeds, with explicit downloads stored locally.
@@ -48,7 +49,7 @@ node --test
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [architecture](docs/IMPLEMENTATION.md), [UI design](docs/UI-DESIGN.md), [security](SECURITY.md) and [third-party notices](NOTICE). Original Folio code is licensed under **Apache-2.0**; bundled components retain their own licenses. Contributions are welcome through issues and pull requests. Never include personal books, profiles, credentials or private screenshots.
 
-The current release is **0.10.0**. Windows installers, portable ZIPs and checksums are distributed in [GitHub Releases](https://github.com/AceAligora/folio-local-reader/releases), while the repository contains source. Tagged versions run the Windows release workflow before publication. See [distribution and updater details](docs/DISTRIBUTION.md).
+The current release is **0.11.0**. Windows installers, portable ZIPs and checksums are distributed in [GitHub Releases](https://github.com/AceAligora/folio-local-reader/releases), while the repository contains source. Tagged versions run the Windows release workflow before publication. See [distribution and updater details](docs/DISTRIBUTION.md).
 
 ## Detailed feature notes · 0.9.0
 

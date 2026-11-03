@@ -1,16 +1,19 @@
-# Folio 0.10.0
+# Folio 0.11.0 — local book recovery
 
-A local-first Windows ebook reader for PDF, EPUB, CBZ and naturally ordered image collections.
+Recover reading data after moving or copying your library to another drive, without relying on filenames or filesystem identity.
 
-- New bookshelf interface with cream/olive surfaces, real covers, local Discover, categories and matching reader/settings pages.
-- Automatic desktop update checks at startup and every four hours. New stable GitHub Releases download in the background; Folio verifies SHA-256, saves reading progress, and installs after you choose **Install and restart**.
-- Native **Updates** menu includes manual checking and an automatic-check opt-out. Software update checks are separate from optional ebook networking and send no library content.
-- Installers, portable ZIPs, a machine-readable release manifest and SHA-256 checksums are distributed through **GitHub Releases**. Tagged releases build and test before publication.
+- **Settings → Library health → Prepare recovery fingerprints** remembers local PDF/EPUB/CBZ contents before a move. Repeat it in the new folder to find exact copies.
+- Review the original and replacement before applying. Folio rehashes the replacement, rejects stale reviews and saves a safety backup.
+- Reading positions/preferences, notes, bookmarks, tags, queue and manual collections transfer. Reading time retains the larger total. Previous-library records and ebook files remain intact; unrelated same-name collections are kept separate.
+- Fingerprints persist locally and unchanged files are reused. Preparation is cancellable and bounded to 200 files / 2 GB per pass. Incognito and app lock are enforced. Nothing is uploaded.
+- 111 local automated tests passed, including 13 new service/HTTP checks plus installed Windows OCR/speech. A generated browser fixture recovered a renamed EPUB and resumed chapter 2.
 
-## Windows download
+## Install or update
 
-Choose **Folio-Setup-0.10.0-windows-x64-unsigned.exe** for the installed desktop app with automatic updates. Installation is per user and needs no administrator access. The portable desktop/browser ZIPs are available for manual use; they do not automatically replace themselves.
+Download **Folio-Setup-0.11.0-windows-x64-unsigned.exe**, or use **Updates → Check for updates** in the installed 0.10.0 desktop app. Automatic checks continue at startup and every four hours. Portable ZIPs update manually. The release remains unsigned by owner choice.
 
-This release is deliberately **unsigned**. Checksums verify artifact integrity; they are not publisher signatures. Books, original files, reading data and the existing profile are preserved. Optional Open with registration does not replace Windows defaults.
+## Compatibility and limits
 
-Existing 0.9.0 installations need this installer once to gain the updater. Future stable published releases are then detected automatically while Folio is running. Drafts, prereleases and ordinary source commits are not app updates. Offline reading remains available when GitHub cannot be reached.
+This release adds **profile schema 8**. Older builds refuse an upgraded profile; keep a pre-upgrade full-profile backup if you need to downgrade. Existing book/reading data is preserved. Fingerprints must be prepared before originals disappear; otherwise use manual relinking. Image folders and files over 2 GB also use manual relinking. Matches reflect the date last remembered and never trigger an automatic merge. Physical second-drive hardware testing remains open; tests simulate changing library roots with generated files.
+
+See [content recovery instructions](https://github.com/AceAligora/folio-local-reader/blob/v0.11.0/docs/CONTENT-RECOVERY.md).

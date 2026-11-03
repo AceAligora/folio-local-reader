@@ -2,6 +2,7 @@ import {changeAnnotation} from './lib/annotations.mjs';
 import {visibleQueue,changeQueue} from './lib/reading-queue.mjs';
 import {previewRelink} from './lib/relink-review.mjs';
 import {DuplicateVerifier} from './lib/duplicate-verifier.mjs';
+import {ContentRecovery} from './lib/content-recovery.mjs';
 import {LibraryWatcher} from './lib/library-watcher.mjs';
 import {AutomaticBackups} from './lib/automatic-backups.mjs';
 import {exportProfile} from './lib/profile-backup.mjs';
@@ -37,6 +38,7 @@ try{const previous=JSON.parse(await readFile(runtimeFile,'utf8'));try{process.ki
 await writeFile(runtimeFile,JSON.stringify({pid:process.pid,started:Date.now()}),{flag:'wx'});
 const library = new Library(path.join(profile,'library.sqlite'));
 const duplicateVerifier=new DuplicateVerifier(library);
+const contentRecovery=new ContentRecovery(library);
 const libraryWatcher=new LibraryWatcher(library);
 const automaticBackups=new AutomaticBackups(library,profile);
 const imports = new Imports(library,profile);
@@ -76,7 +78,7 @@ const server = http.createServer(async(req,res)=>{
       res.setHeader('Set-Cookie',`reader=${token}; HttpOnly; SameSite=Strict; Path=/`);
       res.setHeader('Content-Type',mime['.html']); return res.end(await readFile(path.join(home,'public/index.html')));
     }
-    if (['/discovery-model.js','/discovery.js','/read-aloud.js','/annotations.js','/reading-queue.js','/shortcuts.js','/serial-ui.js','/source-update-ui.js','/native-source-ui.js','/epub-position.js','/compare-reader.js','/text-library.js','/crop.js','/accessibility-reader.js','/library-tools.js','/book-details.js','/archive-reader.js','/security-ui.js','/continuous-reader.js','/notebook.js','/backup-ui.js','/reader-navigation.js','/actions.js','/app.js','/workspace.js','/network-ui.js','/wheel.js','/spreads.js','/pdf-reader.js','/epub-reader.js','/covers.js','/pdf-text.css','/style.css'].includes(url.pathname) && req.method==='GET') {
+    if (['/content-recovery.js','/discovery-model.js','/discovery.js','/read-aloud.js','/annotations.js','/reading-queue.js','/shortcuts.js','/serial-ui.js','/source-update-ui.js','/native-source-ui.js','/epub-position.js','/compare-reader.js','/text-library.js','/crop.js','/accessibility-reader.js','/library-tools.js','/book-details.js','/archive-reader.js','/security-ui.js','/continuous-reader.js','/notebook.js','/backup-ui.js','/reader-navigation.js','/actions.js','/app.js','/workspace.js','/network-ui.js','/wheel.js','/spreads.js','/pdf-reader.js','/epub-reader.js','/covers.js','/pdf-text.css','/style.css'].includes(url.pathname) && req.method==='GET') {
       res.setHeader('Content-Type',mime[path.extname(url.pathname)]); return res.end(await readFile(path.join(home,'public',url.pathname.slice(1))));
     }
     if (!authorized) return json(res,401,{error:'Open the reader home page first.'});
@@ -103,6 +105,7 @@ const server = http.createServer(async(req,res)=>{
     if(req.method==='GET'&&url.pathname==='/api/local-book')return json(res,200,library.bookBySource(url.searchParams.get('source')));
     if(req.method==='GET'&&url.pathname==='/api/desktop-file-binding')return json(res,200,library.desktopFileBinding(url.searchParams.get('key')));
     if(req.method==='GET'&&url.pathname==='/api/duplicates/verified')return json(res,200,duplicateVerifier.result());
+    if(req.method==='GET'&&url.pathname==='/api/recovery')return json(res,200,contentRecovery.result());
     if(req.method==='GET'&&url.pathname==='/api/queue')return json(res,200,visibleQueue(library));
     if(req.method==='GET'&&url.pathname==='/api/duplicates')return json(res,200,library.duplicateCandidates());
     if(req.method==='GET'&&url.pathname==='/api/sources')return json(res,200,sources.registry.list());
@@ -152,15 +155,19 @@ const server = http.createServer(async(req,res)=>{
       if(url.pathname==='/api/speech'){const data=await body(req),controller=new AbortController();res.on('close',()=>{if(!res.writableEnded)controller.abort();});const wav=await speech.speak(data.text,data.voice,{signal:controller.signal});res.setHeader('Content-Type','audio/wav');return res.end(wav);}
       if(url.pathname==='/api/bulk'){const data=await body(req);return json(res,200,library.bulk(data.ids,data.patch));}
       if(url.pathname==='/api/automatic-backups/create'){await body(req);return json(res,200,await automaticBackups.tick(true)||{skipped:true});}
-      if(url.pathname==='/api/duplicates/verify'){await body(req);if(duplicateVerifier.job.running)throw new Error('A duplicate check is already running.');if(library.preferences().incognito||library.job.running)throw new Error('Leave Incognito and wait for the scan to finish.');void duplicateVerifier.run().catch(()=>{duplicateVerifier.job.status='Check failed; try again.';});return json(res,202,{ok:true});}
+      if(url.pathname==='/api/duplicates/verify'){await body(req);if(duplicateVerifier.job.running)throw new Error('A duplicate check is already running.');if(library.preferences().incognito||library.job.running||contentRecovery.job.running||contentRecovery.busy)throw new Error('Leave Incognito and wait for scans or recovery checks to finish.');void duplicateVerifier.run().catch(()=>{duplicateVerifier.job.status='Check failed; try again.';});return json(res,202,{ok:true});}
       if(url.pathname==='/api/duplicates/cancel'){await body(req);duplicateVerifier.cancel();return json(res,200,{ok:true});}
+      if(url.pathname==='/api/recovery/prepare'){await body(req);if(contentRecovery.job.running||contentRecovery.busy)throw new Error('A content recovery check is already running.');contentRecovery.guard();if(duplicateVerifier.job.running)throw new Error('Wait for duplicate verification to finish.');void contentRecovery.run().catch(()=>{contentRecovery.job.status='Preparation failed; try again.';});return json(res,202,{ok:true});}
+      if(url.pathname==='/api/recovery/cancel'){await body(req);contentRecovery.cancel();return json(res,200,{ok:true});}
+      if(url.pathname==='/api/recovery/preview'){const data=await body(req);return json(res,200,await contentRecovery.preview(data.from,data.to));}
+      if(url.pathname==='/api/recovery/apply'){const data=await body(req);return json(res,200,await contentRecovery.apply(data.from,data.to,data.token,async backup=>{const folder=path.join(profile,'backups');await mkdir(folder,{recursive:true});const name='before-content-recovery-'+Date.now()+'-'+randomBytes(4).toString('hex')+'.json';await writeFile(path.join(folder,name),JSON.stringify(backup),{flag:'wx'});return name;}));}
       if(url.pathname==='/api/queue')return json(res,200,changeQueue(library,await body(req)));
       if(url.pathname==='/api/relink/preview'){const data=await body(req);return json(res,200,previewRelink(library,data.missing,data.replacement));}
       if(url.pathname==='/api/relink'){const data=await body(req),plan=previewRelink(library,data.missing,data.replacement);await library.content(data.replacement);if(typeof data.token!=='string'||data.token!==plan.token)throw new Error('Reading data changed or has not been reviewed. Review the transfer again.');const folder=path.join(profile,'backups');await mkdir(folder,{recursive:true});const safetyBackup='before-relink-'+Date.now()+'.json';await writeFile(path.join(folder,safetyBackup),JSON.stringify(library.backup()),{flag:'wx'});if(previewRelink(library,data.missing,data.replacement).token!==data.token)throw new Error('Reading data changed. Review the transfer again.');return json(res,200,{...library.relink(data.missing,data.replacement),safetyBackup});}
       if(url.pathname==='/api/dictionary'){const entries=await body(req);if(!entries||typeof entries!=='object'||Array.isArray(entries)||Object.keys(entries).length>50000)throw new Error('Use a JSON object mapping words to definitions.');const clean=Object.create(null);for(const [word,definition]of Object.entries(entries)){if(!word.trim()||word.length>100||typeof definition!=='string'||definition.length>10000)throw new Error('Dictionary entries require words and text definitions.');clean[word.trim().toLowerCase()]=definition;}library.db.prepare('INSERT OR REPLACE INTO config VALUES(?,?)').run('dictionary',JSON.stringify(clean));return json(res,200,{count:Object.keys(clean).length});}
       if(url.pathname==='/api/custom-cover/remove'){await customCovers.remove((await body(req)).id);return json(res,200,{ok:true});}
-      if(url.pathname==='/api/lock/setup'){const data=await body(req);unlockCookie(await appLock.setup(data.password,data.previous));sourceSessions.clear();chapterFeeds.cancel();return json(res,200,{ok:true});}
-      if(url.pathname==='/api/lock/now'){appLock.lock(unlocked);sourceSessions.clear();chapterFeeds.cancel();sourceUpdates.cancel();unlockCookie('');return json(res,200,{ok:true});}
+      if(url.pathname==='/api/lock/setup'){const data=await body(req);unlockCookie(await appLock.setup(data.password,data.previous));sourceSessions.clear();chapterFeeds.cancel();contentRecovery.cancel();return json(res,200,{ok:true});}
+      if(url.pathname==='/api/lock/now'){appLock.lock(unlocked);sourceSessions.clear();chapterFeeds.cancel();sourceUpdates.cancel();contentRecovery.cancel();unlockCookie('');return json(res,200,{ok:true});}
       if(url.pathname==='/api/lock/remove'){await appLock.remove((await body(req)).password);return json(res,200,{ok:true});}
       if(url.pathname==='/api/maintenance'){if(library.job.running)throw new Error('Wait for the scan to finish.');const folder=path.join(profile,'backups');await mkdir(folder,{recursive:true});const snapshot=path.join(folder,'before-maintenance-'+Date.now()+'.sqlite');library.db.exec("VACUUM INTO '"+snapshot.replaceAll("'","''")+"'");library.db.exec('REINDEX; PRAGMA optimize;');return json(res,200,{checks:library.db.prepare('PRAGMA integrity_check').all(),snapshot:path.basename(snapshot)});}
       if(url.pathname==='/api/restore/preview'){const plan=prepareRestore(library,await body(req));return json(res,200,{matched:plan.matched,missing:plan.missing});}
@@ -171,7 +178,7 @@ const server = http.createServer(async(req,res)=>{
       if(url.pathname==='/api/import/cancel'){await imports.cancel((await body(req)).id);return json(res,200,{ok:true});}
       if(url.pathname==='/api/collections')return json(res,200,library.saveCollection(await body(req)));
       if(url.pathname==='/api/collections/remove'){library.removeCollection((await body(req)).id);return json(res,200,{ok:true});}
-      if(url.pathname==='/api/preferences'){const previous=library.preferences(),next=library.preferences(await body(req));if(!next.networkEnabled||next.incognito||!next.serialRefresh&&chapterFeeds.automatic)chapterFeeds.cancel();if(!next.networkEnabled||next.incognito||!next.sourceSessions||previous.userAgent!==next.userAgent)sourceSessions.clear();if(next.incognito)duplicateVerifier.cancel();libraryWatcher.reconcile();return json(res,200,next);}
+      if(url.pathname==='/api/preferences'){const previous=library.preferences(),next=library.preferences(await body(req));if(!next.networkEnabled||next.incognito||!next.serialRefresh&&chapterFeeds.automatic)chapterFeeds.cancel();if(!next.networkEnabled||next.incognito||!next.sourceSessions||previous.userAgent!==next.userAgent)sourceSessions.clear();if(next.incognito){duplicateVerifier.cancel();contentRecovery.cancel();}libraryWatcher.reconcile();return json(res,200,next);}
       if(url.pathname==='/api/sources/manage'){const data=await body(req);return json(res,200,sources.registry.manage(data.id,data.action,data.settings));}
       if(url.pathname==='/api/chapter-feeds/add')return json(res,200,chapterFeeds.add(await body(req)));
       if(url.pathname==='/api/chapter-feeds/check'){const data=await body(req);return json(res,200,await chapterFeeds.check(data.id));}
@@ -197,7 +204,7 @@ const server = http.createServer(async(req,res)=>{
       if(url.pathname==='/api/network/metadata'){const data=await body(req);return json(res,200,await network.metadata(data.query));}
       if(url.pathname==='/api/network/apply-metadata'){const data=await body(req);return json(res,200,network.applyMetadata(data.bookId,data.query,data.key));}
       if(url.pathname==='/api/integrity')return json(res,200,library.db.prepare('PRAGMA integrity_check').all());
-      if (url.pathname==='/api/config') { const data=await body(req);if(chapterFeeds.job.running)throw new Error('Cancel the chapter operation before changing the library.');await library.configure(data.root);duplicateVerifier.cancel();libraryWatcher.reconcile();sourceSessions.clear();return json(res,200,{ok:true}); }
+      if (url.pathname==='/api/config') { const data=await body(req);if(chapterFeeds.job.running)throw new Error('Cancel the chapter operation before changing the library.');await library.configure(data.root);duplicateVerifier.cancel();contentRecovery.cancel();libraryWatcher.reconcile();sourceSessions.clear();return json(res,200,{ok:true}); }
       if (url.pathname==='/api/scan') { if(!library.root()) throw new Error('Configure a folder first.'); const options=await body(req);if('full'in options&&typeof options.full!=='boolean')throw new Error('Invalid scan mode.');void library.scan({full:options.full===true}); return json(res,202,{ok:true}); }
       if (url.pathname==='/api/cancel') {library.cancel(); return json(res,200,{ok:true});}
       if (url.pathname.startsWith('/api/state/')) {library.save(url.pathname.split('/').pop(),await body(req)); return json(res,200,{ok:true});}
@@ -241,7 +248,7 @@ if(process.argv.includes('--open')) {
 libraryWatcher.reconcile();
 let lastAutoScan=Date.now();const backgroundRefresh=setInterval(()=>{const prefs=library.preferences();sourceSessions.reconcile();libraryWatcher.reconcile();void automaticBackups.tick().catch(()=>{});if(prefs.autoRefresh&&!library.job.running&&library.root()&&Date.now()-lastAutoScan>=prefs.refreshMinutes*60000){lastAutoScan=Date.now();void library.scan().catch(()=>{});}void sourceUpdates.tick().catch(error=>{sourceUpdates.job.status=error.message;});void chapterFeeds.tick().catch(error=>{chapterFeeds.job.status=error.message;});},15000);backgroundRefresh.unref();
 let stopping=false;
-async function shutdown(){if(stopping)return;stopping=true;clearInterval(backgroundRefresh);libraryWatcher.close();speech.cancel();duplicateVerifier.cancel();library.cancel();sourceUpdates.cancel();chapterFeeds.cancel();sourceSessions.clear();server.close();while(speech.controllers.size||duplicateVerifier.job.running||automaticBackups.running||library.job.running||sourceUpdates.job.running||sourceUpdates.applying||chapterFeeds.job.running)await new Promise(r=>setTimeout(r,20));library.close();await rm(runtimeFile,{force:true});process.exit(0);}
+async function shutdown(){if(stopping)return;stopping=true;clearInterval(backgroundRefresh);libraryWatcher.close();speech.cancel();duplicateVerifier.cancel();contentRecovery.cancel();library.cancel();sourceUpdates.cancel();chapterFeeds.cancel();sourceSessions.clear();server.close();while(speech.controllers.size||duplicateVerifier.job.running||contentRecovery.job.running||contentRecovery.busy||automaticBackups.running||library.job.running||sourceUpdates.job.running||sourceUpdates.applying||chapterFeeds.job.running)await new Promise(r=>setTimeout(r,20));library.close();await rm(runtimeFile,{force:true});process.exit(0);}
 process.on('SIGINT',shutdown);process.on('SIGTERM',shutdown);
 process.on('message',message=>{if(message?.type==='folio:shutdown'&&message.instance===instance)void shutdown();});
 if(process.send)process.on('disconnect',()=>void shutdown());

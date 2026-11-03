@@ -135,7 +135,7 @@ Known limits: CBZ/EPUB extraction is 80 MB; full-profile archives are 256 MB. Co
 - [x] Same-volume PDF/EPUB/CBZ rename/move recognition after an identity-baseline scan, retaining book IDs and associated reading data
 - [x] Automatic rotating local reading-data snapshots, manual creation, review and restore with a safety copy
 - [x] Same-volume image-folder move recognition with page-path remapping for custom order, excluded pages and resume anchors
-- [ ] Cross-volume content matching (manual relinking remains available)
+- [x] Reviewed cross-volume content matching for fingerprinted PDF/EPUB/CBZ files; image folders and files without baselines use manual relinking
 - [x] Recursive filesystem watcher with debouncing, scan coordination, exclusions, Incognito pause, retry and manual/periodic fallback
 
 Validation: 63 automated checks passed including Windows OCR/speech. A separate generated library verified EPUB font persistence after reload, recovery preview, and identical continuous scroll offset after reopening. This source update does not rebuild the previously delivered installer.
@@ -251,3 +251,17 @@ See [UI-DESIGN.md](UI-DESIGN.md) and [UI-REDESIGN-QA.md](UI-REDESIGN-QA.md). Thi
 - [x] Version-tag workflow builds/tests before publishing installer, portable ZIPs, manifest and checksums to Releases
 
 Software update requests are independent of optional ebook networking and send no library content. Installed Windows copies update automatically after acceptance of Install and restart; portable/browser/source copies update manually. Existing 0.9.0 users install 0.10.0 once. Signing remains deferred by owner choice. Hosted release and installer evidence is recorded in [DISTRIBUTION.md](DISTRIBUTION.md).
+
+
+## Local content recovery — 0.11.0
+
+- [x] Explicit, bounded SHA-256 preparation for all visible local PDF/EPUB/CBZ files, including unique books
+- [x] Persisted fingerprints survive restart; unchanged verified files reuse their snapshot
+- [x] Matches across configured library roots without requiring a previous-root record to be marked missing
+- [x] Explicit choice/review, replacement rehash, stale-state rejection and destination safety backup
+- [x] Position, preferences, notes, bookmarks, tags, queue, MAX reading time and manual collection membership transfer
+- [x] Prior-root records retained; unrelated same-name collections preserved with separate recovered collections
+- [x] Cancellation, exclusions, root/scan changes, Incognito and app-lock boundaries
+- [x] Generated-library service/HTTP tests and actual browser recovery/resume on chapter 2
+
+111 local tests pass, including Windows OCR and speech. Tests simulate root/volume changes with generated files; physical second-drive hardware and broad accessibility testing remain open. This adds profile schema 8; old builds refuse upgraded profiles. No ebook is rewritten, deleted or sent remotely. See [content recovery usage and limits](CONTENT-RECOVERY.md). The increment ships through the existing GitHub Releases workflow.
