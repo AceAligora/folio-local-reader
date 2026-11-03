@@ -1,6 +1,6 @@
 {
   "name": "local-ebook-reader",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=2",
     "check": "node scripts/check.mjs",
     "build:portable": "node scripts/build-portable.mjs",
     "build:desktop": "node scripts/build-desktop.mjs",

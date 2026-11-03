@@ -1,6 +1,6 @@
 # Recovering a moved local library
 
-Folio 0.11.0 can reconnect reading data to byte-identical PDF, EPUB and CBZ copies, including after switching the library folder to another drive. It uses locally remembered SHA-256 fingerprints, never filenames alone. No ebook data is sent over the network.
+Folio 0.11.1 can reconnect reading data to byte-identical PDF, EPUB and CBZ copies, including after switching the library folder to another drive. It uses locally remembered SHA-256 fingerprints, never filenames alone. No ebook data is sent over the network.
 
 ## Before moving books
 

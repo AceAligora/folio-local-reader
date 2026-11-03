@@ -22,7 +22,7 @@ jobs:
           $version = (Get-Content package.json | ConvertFrom-Json).version
           if ($env:GITHUB_REF -ne "refs/tags/v$version") { throw 'Run releases from the matching vMAJOR.MINOR.PATCH tag.' }
       - run: node scripts/check.mjs
-      - run: node --test
+      - run: node --test --test-concurrency=2
       - run: node scripts/build-portable.mjs
       - run: node scripts/build-desktop.mjs
       - run: node scripts/verify-desktop-session.mjs
