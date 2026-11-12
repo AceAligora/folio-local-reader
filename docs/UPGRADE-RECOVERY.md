@@ -12,7 +12,7 @@ This is a copy of existing persisted records, including when the saved preferenc
 
 ## Verify or recover offline
 
-Stop Folio first. From the source checkout, or the portable browser distribution containing `node.exe` and `scripts`, verify a chosen snapshot:
+Stop Folio first. From the source checkout, verify a chosen snapshot:
 
 ```powershell
 node scripts/recover-upgrade.mjs "C:\path\to\upgrade-backups\schema-7-before-8-TIMESTAMP-ID.sqlite"
@@ -22,6 +22,12 @@ Use the actual filename. Verification checks the manifest, bytes, schema and SQL
 
 ```powershell
 node scripts/recover-upgrade.mjs "C:\path\to\upgrade-backups\schema-7-before-8-TIMESTAMP-ID.sqlite" --to "$env:LOCALAPPDATA\Folio-Recovered"
+```
+
+The portable browser ZIP also includes the tool and its own Node runtime. From the extracted folder, use this form instead; no installed Node is required:
+
+```powershell
+& .\runtime\node.exe .\app\scripts\recover-upgrade.mjs "C:\path\to\upgrade-backups\schema-7-before-8-TIMESTAMP-ID.sqlite" --to "$env:LOCALAPPDATA\Folio-Recovered"
 ```
 
 The destination's parent must exist, and the destination itself must not exist. Recovery copies and verifies the database; it refuses an existing profile. Your working profile and the snapshot remain intact. Open the recovered profile with a Folio version compatible with its saved schema and point `EBOOK_PROFILE` at that separate directory. Opening it in a newer Folio version may upgrade it again. The normal library folder still points to the original ebook location; reconnect that folder if necessary.
