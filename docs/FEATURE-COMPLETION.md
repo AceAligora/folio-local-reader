@@ -265,3 +265,14 @@ Software update requests are independent of optional ebook networking and send n
 - [x] Generated-library service/HTTP tests and actual browser recovery/resume on chapter 2
 
 111 local tests pass, including Windows OCR and speech. Tests simulate root/volume changes with generated files; physical second-drive hardware and broad accessibility testing remain open. This adds profile schema 8; old builds refuse upgraded profiles. No ebook is rewritten, deleted or sent remotely. See [content recovery usage and limits](CONTENT-RECOVERY.md). The increment ships through the existing GitHub Releases workflow.
+
+## Upgrade recovery — 0.11.3
+
+- [x] Automatic verified database snapshot before changing a populated profile's schema
+- [x] Committed WAL data included; SHA-256, schema/integrity checks and disk flush before migration
+- [x] Atomic schema/version changes, concurrent-write rejection and rollback on migration failure
+- [x] Failed-start runtime marker cleanup and corrected retry
+- [x] Offline verification and recovery into a separate new profile; existing profiles refuse replacement
+- [x] Recovery command included in portable/desktop payloads; private upgrade-backups directories excluded from releases
+
+Schema remains 8: this adds protection for upgrades from older schemas and future transitions, without creating redundant snapshots for current profiles. Snapshots are database-only and retained locally until explicitly removed. Full-profile ZIPs remain the way to include cover/package assets. Ten generated-fixture tests cover upgrade/recovery failures and preservation; physical power-loss/disk-full testing and broad accessibility remain unchecked. See [upgrade recovery instructions](UPGRADE-RECOVERY.md).

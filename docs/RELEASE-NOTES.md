@@ -1,23 +1,21 @@
-# Folio 0.11.2 — local book recovery
+# Folio 0.11.3 — safer local upgrades
 
-Recover reading data after moving or copying your library to another drive, without relying on filenames or filesystem identity.
+Folio now saves and verifies a local database backup before upgrading an older profile's database format.
 
-- **Settings → Library health → Prepare recovery fingerprints** remembers local PDF/EPUB/CBZ contents before a move. Repeat it in the new folder to find exact copies.
-- Review the original and replacement before applying. Folio rehashes the replacement, rejects stale reviews and saves a safety backup.
-- Reading positions/preferences, notes, bookmarks, tags, queue and manual collections transfer. Reading time retains the larger total. Previous-library records and ebook files remain intact; unrelated same-name collections are kept separate.
-- Fingerprints persist locally and unchanged files are reused. Preparation is cancellable and bounded to 200 files / 2 GB per pass. Incognito and app lock are enforced. Nothing is uploaded.
-- 111 local automated tests passed, including 13 new service/HTTP checks plus installed Windows OCR/speech. A generated browser fixture recovered a renamed EPUB and resumed chapter 2.
+- Snapshots include the latest committed reading data, notes, collections, preferences and database settings, including changes still in SQLite's write-ahead log.
+- Folio checks the backup's schema/integrity and SHA-256 before proceeding. If backup creation fails, the database format is not changed.
+- Schema changes and their version marker commit together. Failed migrations roll back; a concurrent write cancels the upgrade rather than using a stale safety copy.
+- A shipped offline recovery command verifies a snapshot and creates a separate recovered profile, preserving the working profile and original ebooks.
+- Failed upgrade startup releases its runtime marker so the app can start again after the storage problem is corrected.
 
 ## Install or update
 
-Download **Folio-Setup-0.11.2-windows-x64-unsigned.exe**, or use **Updates → Check for updates** in the installed 0.10.0 desktop app. Automatic checks continue at startup and every four hours. Portable ZIPs update manually. The release remains unsigned by owner choice.
+Download **Folio-Setup-0.11.3-windows-x64-unsigned.exe**, or choose **Updates → Check for updates** in an installed updater-enabled Folio. Published stable GitHub Releases remain the update feed. Portable ZIPs update manually. This Windows x64 preview remains unsigned by owner choice.
 
 ## Compatibility and limits
 
-This release adds **profile schema 8**. Older builds refuse an upgraded profile; keep a pre-upgrade full-profile backup if you need to downgrade. Existing book/reading data is preserved. Fingerprints must be prepared before originals disappear; otherwise use manual relinking. Image folders and files over 2 GB also use manual relinking. Matches reflect the date last remembered and never trigger an automatic merge. Physical second-drive hardware testing remains open; tests simulate changing library roots with generated files.
+Schema stays **8**. Updating from 0.11.2 creates no redundant upgrade snapshot. This protection applies when this version performs a schema transition; it cannot recreate a pre-upgrade backup from a transition already completed by an older build.
 
-See [content recovery instructions](https://github.com/AceAligora/folio-local-reader/blob/v0.11.2/docs/CONTENT-RECOVERY.md).
+Keep each `.sqlite` snapshot and its matching `.sqlite.json` together in the profile's `upgrade-backups` folder. These contain private local data and are not encrypted. Snapshots are database-only; full-profile ZIPs remain available for custom cover and package assets. Nothing is uploaded. No ebook is changed.
 
-CI runs the complete test suite with two concurrent workers to avoid integration-server startup timeouts on constrained Windows runners. The earlier 0.11.0 tag failed its CI gate and was not published as a release.
-
-Same-folder recovery and manual relinking transfer reading time away from the missing record, avoiding duplicate hours in Reading insights. Prior-library records keep their own history. The unpublished 0.11.1 build was cancelled during final review so this fix ships together with recovery.
+121 local tests passed, including ten new generated-fixture checks for WAL preservation, failed migrations, unavailable/linked backup folders, stale snapshots, separate-profile recovery and server retry. Real power-loss, hardware disk-full and broader accessibility/device testing remain open. See [upgrade recovery instructions](https://github.com/AceAligora/folio-local-reader/blob/v0.11.3/docs/UPGRADE-RECOVERY.md).

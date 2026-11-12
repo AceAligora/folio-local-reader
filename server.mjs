@@ -36,7 +36,9 @@ await mkdir(profile,{recursive:true});
 const runtimeFile=path.join(profile,'server-runtime.json');
 try{const previous=JSON.parse(await readFile(runtimeFile,'utf8'));try{process.kill(previous.pid,0);throw new Error('This Folio profile is already open. Use the existing app or stop it before starting another server.');}catch(error){if(error.code!=='ESRCH')throw error;}await rm(runtimeFile,{force:true});}catch(error){if(error.code!=='ENOENT')throw error;}
 await writeFile(runtimeFile,JSON.stringify({pid:process.pid,started:Date.now()}),{flag:'wx'});
-const library = new Library(path.join(profile,'library.sqlite'));
+let library;
+try{library=new Library(path.join(profile,'library.sqlite'));}catch(error){await rm(runtimeFile,{force:true});throw error;}
+if(library.upgradeBackup)console.log('Saved the pre-upgrade database backup: '+library.upgradeBackup.file);
 const duplicateVerifier=new DuplicateVerifier(library);
 const contentRecovery=new ContentRecovery(library);
 const libraryWatcher=new LibraryWatcher(library);

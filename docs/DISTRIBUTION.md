@@ -1,10 +1,10 @@
-# Windows distribution — 0.11.2 unsigned preview
+# Windows distribution — 0.11.3 unsigned preview
 
 Folio remains local-first. The library, reading progress, notes, covers, preferences and backups stay on the device. Optional source networking defaults off. No personal books or profile files are shipped in releases.
 
 ## Install and open books
 
-Run `Folio-Setup-0.11.2-windows-x64-unsigned.exe`. It installs for the current Windows account under `%LOCALAPPDATA%\Programs\Folio`, adds Start Menu shortcuts and an installed-apps entry, and needs no administrator access. Close the installed Folio and its local server before upgrading. Upgrades use the same application folder; uninstall first to move it. Existing books and the profile are preserved in either case.
+Run `Folio-Setup-0.11.3-windows-x64-unsigned.exe`. It installs for the current Windows account under `%LOCALAPPDATA%\Programs\Folio`, adds Start Menu shortcuts and an installed-apps entry, and needs no administrator access. Close the installed Folio and its local server before upgrading. Upgrades use the same application folder; uninstall first to move it. Existing books and the profile are preserved in either case.
 
 The **Offer Folio in Open with** component is optional and initially unchecked. It registers PDF, EPUB and CBZ support without replacing extension defaults or Windows UserChoice. Upgrades retain the choice; unchecking removes Folio's owned entries. Choose a default reader yourself through Windows if desired. The portable desktop ZIP needs only extraction and creates no registrations.
 
@@ -31,9 +31,9 @@ node scripts/build-desktop.mjs
 node scripts/verify-desktop-session.mjs
 node scripts/build-installer.mjs
 node scripts/create-release-fixture.mjs .local/release-fixture
-./scripts/test-installer.ps1 -Installer .local/dist/Folio-Setup-0.11.2-windows-x64-unsigned.exe -Fixture .local/release-fixture/fixture.json
-Compress-Archive -LiteralPath .local/dist/Folio-0.11.2-win32-x64 -DestinationPath .local/dist/Folio-0.11.2-windows-x64.zip
-Compress-Archive -LiteralPath .local/dist/Folio-0.11.2-desktop-win32-x64 -DestinationPath .local/dist/Folio-0.11.2-desktop-windows-x64.zip
+./scripts/test-installer.ps1 -Installer .local/dist/Folio-Setup-0.11.3-windows-x64-unsigned.exe -Fixture .local/release-fixture/fixture.json
+Compress-Archive -LiteralPath .local/dist/Folio-0.11.3-win32-x64 -DestinationPath .local/dist/Folio-0.11.3-windows-x64.zip
+Compress-Archive -LiteralPath .local/dist/Folio-0.11.3-desktop-win32-x64 -DestinationPath .local/dist/Folio-0.11.3-desktop-windows-x64.zip
 node scripts/release-manifest.mjs --allow-unsigned
 ```
 
@@ -49,12 +49,12 @@ The installed Windows app checks the latest **published stable GitHub Release** 
 
 Use the native **Updates** menu to check manually or disable automatic checks/downloads. On **Install and restart**, the reader saves first, the app stops its owned server, rechecks the downloaded installer and hands off through Electron's post-exit relaunch. NSIS updates the existing per-user application and restarts Folio. A failed save cancels installation. If the desktop app shares another local server, close that server and reopen Folio before installing. Books and the profile are not replaced. There is no unattended installation during reading.
 
-Update checks are separately enabled for the installed desktop app because software updating is requested functionality; they do not enable source/metadata networking. Requests contain version/update metadata only, without books, history, reading positions or source cookies. Offline failures leave reading available. Update settings/cache are outside reading-data/profile exports. Browser/source and portable builds do not replace themselves. Existing 0.10.0 installations can get 0.11.2 through the Updates menu. Older installations without the updater need the new installer once. The release remains unsigned by the owner's choice.
+Update checks are separately enabled for the installed desktop app because software updating is requested functionality; they do not enable source/metadata networking. Requests contain version/update metadata only, without books, history, reading positions or source cookies. Offline failures leave reading available. Update settings/cache are outside reading-data/profile exports. Browser/source and portable builds do not replace themselves. Existing updater-enabled installations can get 0.11.3 through the Updates menu. Older installations without the updater need the new installer once. The release remains unsigned by the owner's choice.
 
 ## Publish the next GitHub Release
 
 1. Update both package versions and `docs/RELEASE-NOTES.md`; complete the relevant checks.
-2. Commit and push the source to the repository, then create and push the matching stable tag, for example `v0.11.2`.
+2. Commit and push the source to the repository, then create and push the matching stable tag, for example `v0.11.3`.
 3. **Publish Windows release** builds the installer and both portable ZIPs, tests install/upgrade/uninstall with generated data, and verifies archive manifests.
 4. Only after the build passes, the publish job creates a draft with the installer, ZIPs, release manifest and checksums, then publishes it as Latest. It has write access only in the publish job. Existing published versions are not overwritten; use a new version/tag for a new release.
 5. Verify the public release assets and the repository's Latest Release endpoint. Installed copies receive that release on their next automatic/manual check.
@@ -73,7 +73,7 @@ Local syntax/native tests pass. An earlier local installer build established tha
 
 | Check | Local evidence / status |
 | --- | --- |
-| Syntax and automated suite | 111 tests passed locally, none skipped; includes installed Windows OCR/speech and updater integrity/lifecycle checks |
+| Syntax and automated suite | 121 tests passed locally, none skipped; includes installed Windows OCR/speech, upgrade recovery and updater integrity/lifecycle checks |
 | Generated library indexing/queries | 1,000 tiny PDFs: initial 1,663 ms, incremental 809 ms, median query 34.57 ms, p95 53.65 ms; rendering/OCR excluded |
 | Per-user install/upgrade/uninstall | Actual compiled installer, isolated registry and folder containing spaces |
 | Open with defaults and upgrades | Default off; persisted choice; remove/re-add; quoted PDF/EPUB/CBZ commands; existing defaults retained |
@@ -105,3 +105,7 @@ The real updater was exercised against that public release in an isolated profil
 This release adds [reviewed content recovery](CONTENT-RECOVERY.md) and profile schema 8. Keep a pre-upgrade full-profile backup if you need to downgrade: previous builds refuse the upgraded schema. Fingerprint preparation is manual, limited to 200 files / 2 GB per pass, and entirely local. Files without an earlier fingerprint, image folders and files over 2 GB still use manual relinking. Broad physical-drive and accessibility coverage remains open.
 
 The 0.11.2 patch bounds CI test workers to two without skipping cases. The 0.11.0 tag was retained after startup-timeout failures; it did not publish release assets.
+
+## 0.11.3 upgrade protection
+
+Populated profiles with older schemas receive a verified local database snapshot before migration. Schema/version changes commit together, failed starts release their runtime marker, and the offline recovery command creates a separate profile. Current schema-8 profiles need no migration or redundant snapshot. See [upgrade recovery](UPGRADE-RECOVERY.md) for location, commands, database-only limits and retention. The 121 local tests include installed Windows OCR/speech and ten generated upgrade/recovery checks. Physical power-loss, hardware disk-full and broad accessibility coverage remain open.
