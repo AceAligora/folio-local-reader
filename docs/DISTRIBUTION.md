@@ -82,7 +82,7 @@ Local syntax/native tests pass. An earlier local installer build established tha
 | Unsafe replacement | Running executable and linked managed application paths refused |
 | Build and artifact integrity | Per-file payload manifests, artifact SHA-256 checksums, pinned compiler/runtime, retained notices |
 | Chapter feeds and sessions | Generated feed/cookie/proxy/API checks, native blank-window cookie self-check, isolated browser reading and live public feed compatibility; see [feature notes](CHAPTER-FEEDS-AND-SESSIONS.md) |
-| GitHub Windows release workflow | [0.10.0 Windows build and publication passed](https://github.com/AceAligora/folio-local-reader/actions/runs/40454986689), including install/upgrade/native reading/uninstall and archive verification |
+| GitHub Windows release workflow | [0.11.3 Windows build and publication passed](https://github.com/AceAligora/folio-local-reader/actions/runs/43256629003), including install/upgrade/native reading/uninstall and archive verification |
 | Signing | Deferred by user choice; unsigned preview |
 | Broader manual coverage | **Open:** Windows variants/ARM, DPI/multiple monitors, keyboard/screen-reader walkthrough, visible native dialogs, external capture tools, large real PDFs/EPUBs/comics, low disk/permission failure, interrupted upgrade/power loss and crash recovery |
 
@@ -109,3 +109,14 @@ The 0.11.2 patch bounds CI test workers to two without skipping cases. The 0.11.
 ## 0.11.3 upgrade protection
 
 Populated profiles with older schemas receive a verified local database snapshot before migration. Schema/version changes commit together, failed starts release their runtime marker, and the offline recovery command creates a separate profile. Current schema-8 profiles need no migration or redundant snapshot. See [upgrade recovery](UPGRADE-RECOVERY.md) for location, commands, database-only limits and retention. The 121 local tests include installed Windows OCR/speech and ten generated upgrade/recovery checks. Physical power-loss, hardware disk-full and broad accessibility coverage remain open.
+
+### Published verification
+
+[Folio v0.11.3](https://github.com/AceAligora/folio-local-reader/releases/tag/v0.11.3) is published as the stable Latest Release from tagged commit `2fa94077d6c12216a5a31c6f5b288377cda0707d`. Windows and Linux hosted checks passed, followed by the Windows release build, desktop self-check, installer lifecycle and archive verification.
+
+An isolated 0.11.2 updater downloaded and verified the public 0.11.3 installer; a 0.11.3 client reported current. The installer was not executed in this live-feed check, and no personal profile was used. All three binary artifacts matched the public manifest, GitHub asset digests and SHA256SUMS. The downloaded installer was independently hashed again.
+
+- Installer: **203,737,804 bytes**.
+- SHA-256: `fc528c033afd48b3ff08d49badf6722124920b2ddd8fdf6d91d7ad4f61d0f4a3`.
+- A local generated fixture also exercised the recovery command using the portable distribution's bundled runtime: its separate recovered profile retained schema 7, saved page 2 and reading time; the current profile upgraded to schema 8, and original ebook bytes remained unchanged.
+- Signing remains deferred by owner choice. Controlled fixture and hosted installer success do not establish physical power-loss, broad device/accessibility coverage or a live installed upgrade between two public releases.
